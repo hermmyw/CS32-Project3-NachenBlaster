@@ -1,0 +1,23 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "936CE0DF56986EA29F4790757558917273EF806A",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "936CE0DF56986EA29F4790757558917273EF806A" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "3728F1F9-3D1A-4BAF-8C09-6773A51A170D",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "936CE0DF56986EA29F4790757558917273EF806A" : "NachenBlaster\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "NachenBlaster",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "NachenBlaster.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/hermmyw\/Project3.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "936CE0DF56986EA29F4790757558917273EF806A"
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+Project 3 Spec
+Part 1
+	TURN IN
+		-Actor.h : NachenBlaster, Star class declarations; constants.
+		-Actor.cpp : Implementation
+		-StudentWorld.h
+		-StudentWorld.cpp
+		-May modify the string literal "Assets"
+
+	Actor is a base class:
+		constructor
+		derived from graphobject
+		doSomething()
+
+	Star, derived from Actor
+		move()
+		must not duplicate functionality across classes
+
+	NachenBlaster, derived from Actor
+		derived from Actor, or derived of derived from Actor
+		constructor
+		image ID of IID_NACHENBLASTER
+		doSomething(): 
+			lets the user pick a direction by hitting a directional key
+			if (!move off) 
+				update location
+
+	StudentWorld
+		constructor
+		destructor: free dynamically allocated data
+		init()
+			create a NachenBlaster
+			insert it into the space field
+			create Stars
+			insert them
+		move()
+			doSomething()
+			dont check die
+			only with Stars and NachenBlaster
+			insert new Star at far right
+		cleanUp()
+			free dynamic data from init() or move() (Stars and NB)
+
+	Part 1 Does the following
+		User hits enter to begin
+		display a space field with NB and stars
+		move NB around
+		NB in front 
+		stars drift to left
+
+Game Details
+	Student World (initial)
+		m_life = 3
+		m_level = 1
+		m_nStars = 30
+		space field:
+			256px*256px
+			GameConstants.h
+	Level
+		to complete level N: destroy T = 6 + (4 * N) ships
+	size of star (0.05-0.5)
+	NachenBlaster at a new level
+		hitpoints = 50
+		m_nCabbage = full
+		m_nTorpe = 0
+	Tick
+		every flying object doSomething(): move/fire/fall/die/drop
+		check if NB has died
+		delete dead flying objects
+			destroyed objects
+			collided projectiles
+			flown off the edge
+			picked up goodies
+		update game stats
+			lives
+			health (x/50hitpoints)
+			score
+			level
+			cabbage percent
+			torpe number
+			Lives: 3  Health: 100%  Score: 24530 Level: 3 Cabbages: 80% Torpedoes: 4
+		check if complete a level
+			if so end the current and advance
+		introduce new star
+			1/15 chance
+			at x = VIEW_WIDTH-1
+			size between 0.05-0.5
+		introduce new alien ship
+			D = how many destroyed at the level?
+			R = remaining alien ships that must be destroyed (T - D)
+			M = 4 + (0.5 * currentLevel)
+			if (current on screen < min(M, R))
+				introduce
+			which type?
+				S1 = 60
+				S2 = 20 + currentLevel*5
+				S3 = 5 + currentLevel*10
+				S = S1 + S2 + S3
+				S1/S: Smallgon
+				S2/S: Smoregon
+				S3/S: Snagglegon
+				x=VIEW_WIDTH-1, and a random y between 0 and VIEW_HEIGHT-1, inclusive
+
+Actor
+	Alien
+		Smallgon
+		Smoregon
+		Snagglegon
+	NachenBlaster
+	Star
+
+Goodie
+	extraLife
+	reppair
+	torpe
+
+Projectile
+	cabbage
+	turnip
+	torpe
+Explosion
+
+StudentWorld
+	init()
+		list<Actor*> actors;
+		actors.push_back(new Alien, Stars);
+		NachenBlaster* player = new NachenBlaster;
+		D = the number of alien destroyed = 0
+		R = need to be destroyed T = 6 + (4 * N)
+	move()
+	cleanUp()
