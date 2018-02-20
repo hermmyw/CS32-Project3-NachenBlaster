@@ -27,7 +27,7 @@ bool Actor::die()
 {
     if (m_hitpoints == 0)
     {
-        getWorld()->cleanUp();
+        //getWorld()->cleanUp();
         return true;
     }
     else
@@ -122,7 +122,7 @@ Star::Star(int x, int y, int r)
 void Star::doSomething()
 {
     int x = getX()-1;
-    moveTo(x-1, getY());
+    moveTo(x, getY());
     if (getX() < 0)
         setHitpoints(0);
 }

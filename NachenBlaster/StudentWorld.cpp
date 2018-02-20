@@ -31,9 +31,9 @@ int StudentWorld::init()
         Star* s = new Star(randomX, randomY, randomSize);
         m_actors.push_back(s);
     }
-    NachenBlaster* player = new NachenBlaster;
-    destroyed = 0;
-    remained = 6 + (4 * m_level);
+    //NachenBlaster* player = new NachenBlaster;
+    //destroyed = 0;
+    //remained = 6 + (4 * m_level);
     return GWSTATUS_CONTINUE_GAME;
 }
 
@@ -43,13 +43,14 @@ int StudentWorld::move()
     // Notice that the return value GWSTATUS_PLAYER_DIED will cause our framework to end the current level.
     for (int i = 0; i < m_actors.size(); i++)
     {
+        m_actors.at(i)->doSomething();
         if (!m_actors.at(i)->die())
         {
             m_actors.at(i)->doSomething();
             if (player->die())
             {
                 decLives();
-                return GWSTATUS_PLAYER_DIED;
+                return GWSTATUS_CONTINUE_GAME;
             }
             else
             {
@@ -66,7 +67,7 @@ int StudentWorld::move()
     }
     string text = "Lives: 3 Health: 100% Score: 24530 Level: 3 Cabbages: 80% Torpedoes: 4";
     setGameStatText(text);
-    return GWSTATUS_PLAYER_DIED;
+    return GWSTATUS_CONTINUE_GAME;
 }
 
 void StudentWorld::cleanUp()
