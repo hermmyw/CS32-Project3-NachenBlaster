@@ -13,7 +13,7 @@ Part 1
 		doSomething()
 
 	Star, derived from Actor
-		move()
+		move
 		must not duplicate functionality across classes
 
 	NachenBlaster, derived from Actor
@@ -101,24 +101,126 @@ Game Details
 				S3/S: Snagglegon
 				x=VIEW_WIDTH-1, and a random y between 0 and VIEW_HEIGHT-1, inclusive
 
+GraphObject
+	(int imageID, int startX, int startY, int startDirection = 0, double size = 1.0, int depth = 0)
 Actor
 	Alien
+		checkCollison
+			if (collide)
+				die()
+		collide()
+			
+		die()
+		collisionReaction()
+		setDead()
 		Smallgon
 		Smoregon
 		Snagglegon
 	NachenBlaster
+		NachenBlaster()
+			:GraphObject(IID_NACHENBLASTER, 0, 128, 0, 1.0, 0)
+			:m_hitPoints(50)
+			:m_nCabbage(30)
+			{ }
+		doSomething()
+			if (die)
+				return
+			else
+				int ch;
+				if (getWorld()->getKey(ch))
+					if (space && m_nCabbage >= 5)
+						fire(Cabbage)
+						animate Cabbage
+						m_nCabbage -= 5
+					if (tab && m_nTorpe > 0)
+						fire(Torpedo)
+						animate Torpedo
+						m_nTorpe--
+					if (direction && notOffScreen)
+						moveTo(+6px)
+						checkCollison
+							incurdamage
+				if (m_nCabbage < 30) m_nCabbage++;
 	Star
+		:GraphObject(IDD_STAR, x, y, 0, random, 3)
+		doSomething()
+			moveTo(x-1, y)
+			if x>0
+				die()
+		collison()
+			none
 
-Goodie
-	extraLife
-	reppair
-	torpe
-
-Projectile
-	cabbage
-	turnip
-	torpe
-Explosion
+	Goodie
+		extraLife
+		reppair
+		torpe
+	Projectile
+		cabbage(x, y)
+			:GraphObject(IID_CABBAGE, nb.x+12, nb.y, 0, 0.5, 1)
+			doSomething()
+				if (die)
+					return
+				else if (offScreen)
+					die()  //let StudentWorld delete it
+					return
+				else if (collide w/ alien)
+					damage alien(int howmuch)
+					call alien.sufferDamage
+					die()
+				moveTo(+8px)
+				setDirection(20)
+				if collide
+					damage alien(int howmuch)
+					call alien.sufferDamage
+					die()
+					return
+			cant be attacked
+		turnip(x, y)
+			:GraphObject(IID_TURNIP, x, y, 0, 0.5, 1)
+			doSomething()
+				if (die)
+					return
+				else if (offScreen)
+					die()  //let StudentWorld delete it
+					return
+				else if (collide w/ NB)
+					damage NB(int howmuch)
+					call NB .sufferDamage
+					die()
+				moveTo(+6px)
+				setDirection(20)
+				if collide
+					damage NB(int howmuch)
+					call NB.sufferDamage
+					die()
+					return
+			cant be attacked
+		torpe(x, y, degree)
+			:GraphObject(IID_TORPEDO, x, y, degree, 0.5, 1)
+			doSomething()
+				if (die)
+					return
+				else if (offScreen)
+					die()  //let StudentWorld delete it
+					return
+				else if (collide w/ NB)
+					call NB.sufferDamage or call alien.sufferDamage
+					die()
+					return
+				moveTo(+8px/-8px)
+				setDirection(20)
+				if collide
+					damage NB(int howmuch)
+					call NB.sufferDamage
+					die()
+			cant be attacked
+	Explosion
+		:GraphObject(IDD_EX, x, y, 0, 1, 0)
+		doSth()
+			size *= 1.5
+			die() after 4 ticks
+		collison()
+			none
 
 StudentWorld
 	init()
@@ -129,3 +231,6 @@ StudentWorld
 		R = need to be destroyed T = 6 + (4 * N)
 	move()
 	cleanUp()
+	animate(Projectile)
+		GraphObject(IID_PROJECTILE, nb.x+12, nb.y)
+		playSound

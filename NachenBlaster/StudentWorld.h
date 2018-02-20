@@ -4,10 +4,13 @@
 #include "GameWorld.h"
 #include <string>
 #include <vector>
+#include <sstream>
+#include <iomanip>
 
 // Students:  Add code to this file, StudentWorld.cpp, Actor.h, and Actor.cpp
 class Actor;
 class NachenBlaster;
+class Projectile;
 class StudentWorld : public GameWorld
 {
 public:
@@ -15,13 +18,15 @@ public:
     virtual int init();
     virtual int move();
     virtual void cleanUp();
+    virtual void animate(Projectile* proj);
+    virtual ~StudentWorld();
 
 private:
     int destroyed;
     int remained;
     int total;
     std::vector<Actor*> m_actors;
-    NachenBlaster* player;
+    NachenBlaster* m_player;
     int m_level;
 };
 

@@ -2,9 +2,12 @@
 #include "StudentWorld.h"
 
 // Students:  Add code to this file, Actor.h, StudentWorld.h, and StudentWorld.cpp
-Actor::Actor(int imageID, double startX, double startY, int dir, double size, int depth)
-:GraphObject(imageID, startX, startY, dir, size, depth), m_hitpoints(0)
-{ }
+
+Actor::Actor(StudentWorld* sw, int imageID, double startX, double startY, int dir, double size, int depth)
+:GraphObject(imageID, startX, startY, dir, size, depth), m_hitpoints(50)
+{
+    m_world = sw;
+}
 
 double Actor::dist(int x1, int y1, int x2, int y2)
 {
@@ -18,20 +21,14 @@ bool Actor::collide(int x1, int y1, int r1, int x2, int y2, int r2)
     else
         return false;
 }
-void Actor::collisionReaction()
+void Actor::sufferDamage()
 {
-    return;
+    m_hitpoints -= 10;
 }
 
 bool Actor::die()
 {
-    if (m_hitpoints == 0)
-    {
-        //getWorld()->cleanUp();
-        return true;
-    }
-    else
-        return false;
+    return (m_hitpoints == 0);
 }
 
 void Actor::setHitpoints(int hp)
@@ -39,11 +36,20 @@ void Actor::setHitpoints(int hp)
     m_hitpoints = hp;
 }
 
-bool Actor::offScreen()
+void Actor::setDead()
 {
-    if (getX() < 0 || getX() > 255)
+    m_hitpoints = 0;
+}
+int Actor::getHitpoints()
+{
+    return m_hitpoints;
+}
+
+bool Actor::offScreen(int x, int y)
+{
+    if (x < 0 || x > 255)
         return true;
-    if (getY() < 0 || getY() > 255)
+    if (y < 0 || y > 255)
         return true;
     return false;
 }
@@ -58,11 +64,12 @@ Actor::~Actor()
     std::cerr << "Actor Destructor" << std::endl;
 }
 
-NachenBlaster::NachenBlaster()
-:Actor(IID_NACHENBLASTER, 0, 128), m_nCabbage(30), m_nTorpedo(0)
+NachenBlaster::NachenBlaster(StudentWorld* sw)
+:Actor(sw, IID_NACHENBLASTER, 0, 128), m_nCabbage(30), m_nTorpedo(0)
 {
     setHitpoints(50);
 }
+
 void NachenBlaster::doSomething()
 {
     if (die())
@@ -77,31 +84,36 @@ void NachenBlaster::doSomething()
                 case KEY_PRESS_SPACE:
                     if (m_nCabbage >= 5)
                     {
-                        //animate();
+                        for (int i = 0; i < 5; i++)
+                        {
+                            Cabbage* c = new Cabbage(getWorld(), getX()+12, getY());
+                            getWorld()->animate(c);
+                        }
                         m_nCabbage -= 5;
                     }
                     break;
                 case KEY_PRESS_TAB:
                     if (m_nTorpedo > 0)
                     {
-                        //animate();
+                        Torpedo* t = new Torpedo(getWorld(), getX()+12, getY(), 0);
+                        getWorld()->animate(t);
                         m_nTorpedo--;
                     }
                     break;
                 case KEY_PRESS_UP:
-                    if (!offScreen())
+                    if (!offScreen(getX(), getY()+6))
                         moveTo(getX(), getY()+6);
                     break;
                 case KEY_PRESS_DOWN:
-                    if (!offScreen())
+                    if (!offScreen(getX(), getY()-6))
                         moveTo(getX(), getY()-6);
                     break;
                 case KEY_PRESS_LEFT:
-                    if (!offScreen())
+                    if (!offScreen(getX()-6, getY()))
                         moveTo(getX()-6, getY());
                     break;
                 case KEY_PRESS_RIGHT:
-                    if (!offScreen())
+                    if (!offScreen(getX()+6, getY()))
                         moveTo(getX()+6, getY());
                     break;
             }
@@ -110,21 +122,35 @@ void NachenBlaster::doSomething()
             m_nCabbage++;
     }
 }
+void NachenBlaster::sufferDamage()
+{
+    setHitpoints(getHitpoints()-10);
+}
+
+int NachenBlaster::getCabbage()
+{
+    return m_nCabbage;
+}
+int NachenBlaster::getTorpedo()
+{
+    return m_nTorpedo;
+}
+
 NachenBlaster::~NachenBlaster()
 {
     std::cerr << "NachenBlaster Destructor" << std::endl;
 }
 
-Star::Star(int x, int y, int r)
-:Actor(IID_STAR, x, y, 0, r, 3)
+Star::Star(StudentWorld* sw, int x, int y, double r)
+:Actor(sw, IID_STAR, x, y, 0, r, 3)
 { }
 
 void Star::doSomething()
 {
     int x = getX()-1;
     moveTo(x, getY());
-    if (getX() < 0)
-        setHitpoints(0);
+    if (offScreen(getX(), getY()))
+        setDead();
 }
 
 Star::~Star()
@@ -132,3 +158,59 @@ Star::~Star()
     std::cerr << "Star Destructor" << std::endl;
 }
 
+Projectile::Projectile(StudentWorld* sw, int imageID, double startX, double startY, int dir, double size, int depth)
+:Actor(sw, imageID, startX, startY, dir, size, depth)
+{ }
+
+void Projectile::doSomething()
+{
+    if (die())
+        return;
+    if (offScreen(getX(), getY()))
+        setDead();
+}
+
+Projectile::~Projectile()
+{
+    std::cerr << "Projectile Destructor" << std::endl;
+}
+
+Cabbage::Cabbage(StudentWorld* sw, int x, int y)
+:Projectile(sw, IID_CABBAGE, x, y, 0, 0.5, 1)
+{ }
+
+void Cabbage::doSomething()
+{
+    Projectile::doSomething();
+    if (!die())
+    {
+        moveTo(getX()+8, getY());
+        setDirection(getDirection()+20);
+    }
+}
+Turnip::Turnip(StudentWorld* sw, int x, int y)
+:Projectile(sw, IID_TURNIP, x, y, 0, 0.5, 1)
+{ }
+
+void Turnip::doSomething()
+{
+    Projectile::doSomething();
+    if (!die())
+    {
+        moveTo(getX()-6, getY());
+        setDirection(getDirection()+20);
+    }
+}
+
+Torpedo::Torpedo(StudentWorld* sw, int x, int y, int d)
+:Projectile(sw, IID_TORPEDO, x, y, d, 0.5, 1)
+{ }
+
+void Torpedo::doSomething()
+{
+    Projectile::doSomething();
+    if (!die())
+    {
+        moveTo(getX()+6, getY());
+    }
+}
