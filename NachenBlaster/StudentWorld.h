@@ -20,7 +20,7 @@ private:
     int destroyed;
     int remained;
     int total;
-    std::vector<Actor*> actors;
+    std::vector<Actor*> m_actors;
     NachenBlaster* player;
     int m_level;
 };

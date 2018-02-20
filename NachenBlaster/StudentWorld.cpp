@@ -1,5 +1,6 @@
 #include "StudentWorld.h"
 #include "GameConstants.h"
+#include "Actor.h"
 #include <string>
 #include <vector>
 using namespace std;
@@ -24,8 +25,11 @@ int StudentWorld::init()
     m_level = getLevel();
     for (int i = 0; i < 30; i++)
     {
-        Star* s = new Star;
-        actors.push_back(s);
+        int randomX = randInt(0, 255);
+        int randomY = randInt(0, 255);
+        double randomSize = randInt(5, 50) / 100.0;
+        Star* s = new Star(randomX, randomY, randomSize);
+        m_actors.push_back(s);
     }
     NachenBlaster* player = new NachenBlaster;
     destroyed = 0;
@@ -37,11 +41,11 @@ int StudentWorld::move()
 {
     // This code is here merely to allow the game to build, run, and terminate after you hit enter.
     // Notice that the return value GWSTATUS_PLAYER_DIED will cause our framework to end the current level.
-    for (int i = 0; i < actors.size(); i++)
+    for (int i = 0; i < m_actors.size(); i++)
     {
-        if (!actors.at(i)->die())
+        if (!m_actors.at(i)->die())
         {
-            actors.at(i)->doSomething();
+            m_actors.at(i)->doSomething();
             if (player->die())
             {
                 decLives();
@@ -51,11 +55,11 @@ int StudentWorld::move()
             {
                 if (remained == 0)
                     return GWSTATUS_FINISHED_LEVEL;
-                if (actors.at(i)->die())
+                if (m_actors.at(i)->die())
                 {
-                    delete actors.at(i);
+                    delete m_actors.at(i);
                     increaseScore(250);
-                    return GWSTATUS_CONTINUE_GAME
+                    return GWSTATUS_CONTINUE_GAME;
                 }
             }
         }
