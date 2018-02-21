@@ -5,6 +5,10 @@
 #include <iostream>
 #include <cmath>
 // Students:  Add code to this file, Actor.cpp, StudentWorld.h, and StudentWorld.cpp
+const int UPLEFT = 1;
+const int DOWNLEFT = 2;
+const int DUELEFT = 3;
+
 class StudentWorld;
 class Actor : public GraphObject
 {
@@ -70,16 +74,19 @@ public:
     virtual void move();
     virtual void collisionReaction();
     virtual void dropGoodie() = 0;
-    int getSpeed();
+    double getSpeed();
     int getLength();
-    void setSpeed(int s);
+    int getTravelDir();
+    void setSpeed(double s);
     void setLength(int l);
+    void setTravelDir(int tr);
 private:
     virtual void changeDirDiff() = 0;
     virtual void fireDiff() = 0;
     virtual void moveDiff() = 0;
-    int m_speed;
+    double m_speed;
     int m_length;
+    int m_travelDir;
 };
 class Smallgon : public Alien
 {
@@ -94,7 +101,7 @@ public:
 class Smoregon : public Alien
 {
 public:
-    Smoregon(StudentWorld* sw, int imageID, double startX, double startY);
+    Smoregon(StudentWorld* sw, double startX, double startY);
     virtual void doSomething();
     virtual void changeDirDiff();
     virtual void fireDiff();
@@ -104,7 +111,7 @@ public:
 class Snagglegon : public Alien
 {
 public:
-    Snagglegon(StudentWorld* sw, int imageID, double startX, double startY, int dir);
+    Snagglegon(StudentWorld* sw, double startX, double startY, int travelDir);
     virtual void doSomething();
     virtual void changeDirDiff();
     virtual void fireDiff();
@@ -152,4 +159,6 @@ public:
     Explosion(StudentWorld* sw, int x, int y);
     virtual void doSomething();
 };
+
+
 #endif // ACTOR_H_

@@ -109,13 +109,165 @@ Actor
 			if (collide)
 				die()
 		collide()
-			
 		die()
 		collisionReaction()
 		setDead()
+		m_length
+		m_speed
 		Smallgon
+			:Alien(IID_SMALLGON, x, y, 0, 1.5, 1),
+			m_hitpoints(5 * (1 + (current_level_number – 1) * .1))
+			flight plan: length 0
+			travel speed: 2
+			doSomething()
+				check alive
+				check offScreen->setDead()
+				check collison (NB or NB's projectile)
+				check if need new flight plan (current reach zero OR reach top/bottom)
+					if (y >= 255)
+						down and left
+					if (y <= 0)
+						up and left
+					if length=0
+						random: left, upleft, downleft
+					new length: random 1-32
+				if (NB.getX < x && y within[-4,4] of NB.getY)
+					1 in ((20/CurrentLevelNumber)+5) chance:
+						fire a turnip at (getX-14, y)
+						getWorld->animate()
+						playsound
+						return
+				move
+					length--;
+					upleft: moveTo(-n, +n)
+					downleft: moveTo(-n, -n)
+					left: moveTo(-n, )
+				check collision
+			collisionReaction()
+				if cabbage/torpedo: 
+					m_hitpoints-2
+					if (die())
+						increaseScore(250)
+						setDead()
+						play sound
+						new Explosion
+					else
+						play sound
+				if nachenblaster
+					nb.sufferdamage(5)
+					setDead()
+					increaseScore(250)
+					play sound death
+					new Explosion
 		Smoregon
+			:Alien(IID_SMOREGON, x, y, 0, 1.5, 1),
+			m_hitpoints(5 * (1 + (current_level_number – 1) * .1))
+			flight plan: length 0
+			travel speed: 2
+			doSomething()
+				check alive
+				check offScreen->setDead()
+				check collison (NB or NB's projectile)
+					collisionReaction()
+				check if need new flight plan (current reach zero OR reach top/bottom)
+					if (y >= 255)
+						down and left
+					if (y <= 0)
+						up and left
+					if length=0
+						random: left, upleft, downleft
+					new length: random 1-32
+				if (NB.getX < x && y within[-4,4] of NB.getY)
+					1 in ((20/CurrentLevelNumber)+5) chance:
+						fire a turnip at (getX-14, y)
+						getWorld->animate()
+						int chance = randInt(1, (20/getWorld()->getLevel() + 5));
+						if (chance == 1)
+					            getWorld()->animate();
+						playsound
+						return
+					1 in ((20/CurrentLevelNumber)+5) chance:
+						setDirection(due left)
+						length = VIEW_WIDTH
+						travel speed = 5
+				move
+					length--;
+					upleft: moveTo(-n, +n)
+					downleft: moveTo(-n, -n)
+					left: moveTo(-n, )
+				check collision
+					collisionReaction()
+			collisionReaction()
+				if cabbage/torpedo: 
+					m_hitpoints-2
+					if (die())
+						increaseScore(250)
+						setDead()
+						play sound
+						new Explosion(x, y)
+						1 in 3 chance:
+							drop a goodie (50% repair, 50% torpe)
+							new Goodie(x, y)
+					else
+						play sound
+				if nachenblaster
+					nb.sufferdamage(5)
+					setDead()
+					increaseScore(250)
+					play sound death
+					new Explosion
+					1 in 3 chance:
+						drop a goodie (50% repair, 50% torpe)
+						new Goodie(x, y)
 		Snagglegon
+			:Alien(IID_SNAGGLEGON, x, y, 0, 1.5, 1),
+			m_hitpoints(10 * (1 + (current_level_number – 1) * .1))
+			travel direction: down left
+			travel speed: 2
+			no length
+			doSomething()
+				check alive
+				check offScreen->setDead()
+				check collison (NB or NB's projectile)
+					collisionReaction()
+				check if need new flight plan (reach top/bottom)
+					if (y >= 255)
+						down and left
+					if (y <= 0)
+						up and left
+				if (NB.getX < x && y within[-4,4] of NB.getY)
+					1 in ((15/CurrentLevelNumber)+10) chance:
+						fire a torpedo at (getX-14, y)
+						getWorld->animate()
+						playsound
+						return
+				move
+					upleft: moveTo(-n, +n)
+					downleft: moveTo(-n, -n)
+				check collision
+					collisionReaction()
+			collisionReaction()
+				if cabbage/torpedo: 
+					sufferDamage(2)
+					if (die())
+						increaseScore(1000)
+						setDead()
+						play sound
+						new Explosion(x, y)
+						1 in 6 chance:
+							drop a goodie (extralife)
+							new Goodie(x, y)
+					else
+						play sound
+				if nachenblaster
+					nb.sufferdamage(15)
+					setDead()
+					increaseScore(1000)
+					play sound death
+					new Explosion
+					1 in 3 chance:
+						drop a goodie (extraLife)
+						new ExtraLife(x, y)
 	NachenBlaster
 		NachenBlaster()
 			:GraphObject(IID_NACHENBLASTER, 0, 128, 0, 1.0, 0)

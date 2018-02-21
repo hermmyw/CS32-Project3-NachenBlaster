@@ -176,8 +176,13 @@ NachenBlaster::~NachenBlaster()
 /////////////////////////////////////////////////////////////////////////
 
 Alien::Alien(StudentWorld* sw, int imageID, double startX, double startY, int dir, double size, int depth)
-:Actor(sw, imageID, startX, startY, dir, size, depth), m_speed(2), m_length(VIEW_WIDTH)
-{ }
+:Actor(sw, imageID, startX, startY, dir, size, depth), m_speed(2.0), m_length(VIEW_WIDTH)
+{
+    int randDir = randInt(1, 3);
+    setTravelDir(randDir);
+    int randL = randInt(1, 32);
+    setLength(randL);
+}
 
 bool Alien::isAlien()
 {
@@ -188,24 +193,36 @@ void Alien::doSomething()
 {
     Actor::doSomething();
     // check collision
+    
+    // if need new flight plan
     if (getY() <= 0 || getY() >= VIEW_WIDTH-1 || getLength() <= 0)
         changeDir();
     
+    // if can fire
     int nbX = getWorld()->getPlayer()->getX();
     int nbY = getWorld()->getPlayer()->getY();
     if (getX() > nbX && getY() <= nbY + 4 && getY() >= nbY - 4)
         fire();
+    
+    // continue moving
     move();
+    
     //check collision
 }
 
 void Alien::changeDir()
 {
-    int n = getSpeed();
+    double n = getSpeed();
     if (getY() >= VIEW_WIDTH-1)
-        moveTo(getX()-n, getY()-n);
+    {
+        setTravelDir(DOWNLEFT);
+        //moveTo(getX()-n, getY()-n);
+    }
     else if (getY() <= 0)
-        moveTo(getX()-n, getY()+n);
+    {
+        setTravelDir(UPLEFT);
+        //moveTo(getX()-n, getY()+n);
+    }
     changeDirDiff();
 }
 
@@ -217,13 +234,25 @@ void Alien::fire()
 
 void Alien::move()
 {
-    int n = getSpeed();
+    double n = getSpeed();
     // upleft
     //moveTo(getX()-n, getY()+n);
     // downleft
     //moveTo(getX()-n, getY()-n);
     // due left
-    moveTo(getX()-n, getY());
+    
+    switch (getTravelDir()) {
+        case UPLEFT:
+            moveTo(getX()-n, getY()+n);
+            break;
+        case DOWNLEFT:
+            moveTo(getX()-n, getY()-n);
+            break;
+        case DUELEFT:
+            moveTo(getX()-n, getY());
+        default:
+            break;
+    }
     moveDiff();
 }
 
@@ -238,7 +267,7 @@ void Alien::collisionReaction()
     }
 }
 
-int Alien::getSpeed()
+double Alien::getSpeed()
 {
     return m_speed;
 }
@@ -248,7 +277,12 @@ int Alien::getLength()
     return m_length;
 }
 
-void Alien::setSpeed(int s)
+int Alien::getTravelDir()
+{
+    return m_travelDir;
+}
+
+void Alien::setSpeed(double s)
 {
     m_speed = s;
 }
@@ -258,6 +292,12 @@ void Alien::setLength(int l)
     m_length = l;
 }
 
+void Alien::setTravelDir(int tr)
+{
+    m_travelDir = tr;
+}
+
+//////////////////////////Smallgon////////////////////////////////
 Smallgon::Smallgon(StudentWorld* sw, double startX, double startY)
 :Alien(sw, IID_SMALLGON, startX, startY)
 {
@@ -269,6 +309,7 @@ void Smallgon::doSomething()
 {
     Alien::doSomething();
 }
+
 void Smallgon::changeDirDiff()
 {
     if (getLength() <= 0)
@@ -279,15 +320,15 @@ void Smallgon::changeDirDiff()
         {
             case 1:
                 // upleft
-                moveTo(getX()-n, getY()+n);
+                setTravelDir(UPLEFT);
                 break;
             case 2:
                 // downleft
-                moveTo(getX()-n, getY()-n);
+                setTravelDir(DOWNLEFT);
                 break;
             case 3:
                 // due left
-                moveTo(getX()-n, getY());
+                setTravelDir(DUELEFT);
                 break;
         }
     }
@@ -307,6 +348,106 @@ void Smallgon::moveDiff()
 }
 
 void Smallgon::dropGoodie()
+{
+    return;
+}
+//////////////////////////Smoregon//////////////////////////////////
+Smoregon::Smoregon(StudentWorld* sw, double startX, double startY)
+:Alien(sw, IID_SMOREGON, startX, startY)
+{
+    int n = getWorld()->getLevel();
+    setHitpoints(5 * (1 + (n-1) * 0.1));
+}
+
+void Smoregon::doSomething()
+{
+    Alien::doSomething();
+}
+void Smoregon::changeDirDiff()
+{
+    if (getLength() <= 0)
+    {
+        int randdir = randInt(1, 3);
+        int n = getWorld()->getLevel();
+        switch(randdir)
+        {
+            case 1:
+                // upleft
+                setTravelDir(UPLEFT);
+                break;
+            case 2:
+                // downleft
+                setTravelDir(DOWNLEFT);
+                break;
+            case 3:
+                // due left
+                setTravelDir(DUELEFT);
+                break;
+        }
+    }
+    int randl = randInt(1, 32);
+    setLength(randl);
+}
+
+void Smoregon::fireDiff()
+{
+    Turnip* t = new Turnip(getWorld(), getX()-14, getY());
+    getWorld()->animate(t);
+}
+
+void Smoregon::moveDiff()
+{
+    setLength(getLength()-1);
+}
+
+void Smoregon::dropGoodie()
+{
+    return;
+}
+//////////////////////////Snagglegon////////////////////////////////
+Snagglegon::Snagglegon(StudentWorld* sw, double startX, double startY, int travelDir)
+:Alien(sw, IID_SNAGGLEGON, startX, startY)
+{
+    int n = getWorld()->getLevel();
+    setHitpoints(10 * (1 + (n-1) * 0.1));
+    setTravelDir(DOWNLEFT);
+    setSpeed(1.75);
+}
+
+void Snagglegon::doSomething()
+{
+    Alien::doSomething();
+}
+
+void Snagglegon::changeDirDiff()
+{
+    int randdir = randInt(1, 2);
+    double n = getSpeed();
+    switch(randdir)
+    {
+        case 1:
+            // upleft
+            moveTo(getX()-n, getY()+n);
+            break;
+        case 2:
+            // downleft
+            moveTo(getX()-n, getY()-n);
+            break;
+    }
+}
+
+void Snagglegon::fireDiff()
+{
+    Torpedo* t = new Torpedo(getWorld(), getX()-14, getY(), 0);
+    getWorld()->animate(t);
+}
+
+void Snagglegon::moveDiff()
+{
+    return;
+}
+
+void Snagglegon::dropGoodie()
 {
     return;
 }

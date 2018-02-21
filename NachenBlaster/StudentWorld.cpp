@@ -88,11 +88,30 @@ int StudentWorld::move()
     
     // insert new ships
     int maximum = 4 + (0.5 * getLevel());
-    if (m_nAlien < min(maximum, m_remained))
+    int min = (maximum < m_remained) ? maximum : m_remained;
+    if (m_nAlien < min)
     {
+        Alien* a;
         int randomY = randInt(0, VIEW_HEIGHT-1);
-        Smallgon* small = new Smallgon(this, VIEW_WIDTH-1, randomY);
-        m_actors.push_back(small);
+        
+        int S1 = 60;
+        int S2 = 20 + getLevel() * 5;
+        int S3 = 5 + getLevel() * 10;
+        int S = S1 + S2 + S3;
+        int randShip = randInt(1, S);
+        if (randShip >= 1 && randShip <= S1)
+        {
+            a = new Smallgon(this, VIEW_WIDTH-1, randomY);
+        }
+        else if (randShip <= S1 + S2)
+        {
+            a = new Smoregon(this, VIEW_WIDTH-1, randomY);
+        }
+        else
+        {
+            a = new Snagglegon(this, VIEW_WIDTH-1, randomY, 0);
+        }
+        m_actors.push_back(a);
         m_nAlien++;
     }
     
