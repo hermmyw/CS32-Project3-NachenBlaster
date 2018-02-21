@@ -13,18 +13,21 @@ public:
     Actor(StudentWorld* sw, int imageID, double startX, double startY, int dir = 0, double size = 1.0, int depth = 0);
     
     // Virtual functions
-    virtual void doSomething() = 0;
-    virtual void sufferDamage();
+    virtual void doSomething();
+    virtual void sufferDamage(int d);
+    virtual bool collide(Actor* obj);
+    virtual bool isAlien();
     
-    
-    bool collide(int x1, int y1, int r1, int x2, int y2, int r2);
-    void setHitpoints(int hp);
+    // Mutator function
+    void setHitpoints(double hp);
     void setDead();
+    
+    // Check Status
     bool die();
     bool offScreen(int x, int y);
-    
+
     // Accessor
-    int getHitpoints();
+    double getHitpoints();
     StudentWorld* getWorld();
     
     // Destructor
@@ -32,7 +35,7 @@ public:
     
 private:
     double dist(int x1, int y1, int x2, int y2);
-    int m_hitpoints;
+    double m_hitpoints;
     StudentWorld* m_world;
 };
 
@@ -58,26 +61,61 @@ public:
 };
 class Alien : public Actor
 {
-
+public:
+    Alien(StudentWorld* sw, int imageID, double startX, double startY, int dir = 0, double size = 1.5, int depth = 1);
+    virtual bool isAlien();
+    virtual void doSomething();
+    virtual void changeDir();
+    virtual void fire();
+    virtual void move();
+    virtual void collisionReaction();
+    virtual void dropGoodie() = 0;
+    int getSpeed();
+    int getLength();
+    void setSpeed(int s);
+    void setLength(int l);
+private:
+    virtual void changeDirDiff() = 0;
+    virtual void fireDiff() = 0;
+    virtual void moveDiff() = 0;
+    int m_speed;
+    int m_length;
 };
 class Smallgon : public Alien
 {
-    
+public:
+    Smallgon(StudentWorld* sw, double startX, double startY);
+    virtual void doSomething();
+    virtual void changeDirDiff();
+    virtual void fireDiff();
+    virtual void moveDiff();
+    virtual void dropGoodie();
 };
 class Smoregon : public Alien
 {
-    
+public:
+    Smoregon(StudentWorld* sw, int imageID, double startX, double startY);
+    virtual void doSomething();
+    virtual void changeDirDiff();
+    virtual void fireDiff();
+    virtual void moveDiff();
+    virtual void dropGoodie();
 };
 class Snagglegon : public Alien
 {
-    
+public:
+    Snagglegon(StudentWorld* sw, int imageID, double startX, double startY, int dir);
+    virtual void doSomething();
+    virtual void changeDirDiff();
+    virtual void fireDiff();
+    virtual void moveDiff();
+    virtual void dropGoodie();
 };
 class Projectile : public Actor
 {
 public:
     Projectile(StudentWorld* sw, int imageID, double startX, double startY, int dir = 0, double size = 1.0, int depth = 0);
-    virtual void doSomething();
-    // virtual void animate();
+    virtual void doSomething() = 0;
     virtual ~Projectile();
 private:
     StudentWorld* m_world;
@@ -105,10 +143,13 @@ public:
 };
 class Goodie : public Actor
 {
-    
+public:
+    Goodie(StudentWorld* sw, int x, int y);
 };
 class Explosion : public Actor
 {
-    
+public:
+    Explosion(StudentWorld* sw, int x, int y);
+    virtual void doSomething();
 };
 #endif // ACTOR_H_

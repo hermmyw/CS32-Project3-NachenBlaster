@@ -22,6 +22,7 @@ StudentWorld::StudentWorld(string assetDir)
 int StudentWorld::init()
 {
     m_level = getLevel();
+    // create 30 stars
     for (int i = 0; i < 30; i++)
     {
         int randomX = randInt(0, 255);
@@ -30,9 +31,15 @@ int StudentWorld::init()
         Star* s = new Star(this, randomX, randomY, randomSize);
         m_actors.push_back(s);
     }
+    
+    // create a nachenblaster
     m_player = new NachenBlaster(this);
-    destroyed = 0;
-    remained = 6 + (4 * m_level);
+    
+    // initialize data members
+    m_nAlien = 0;
+    m_destroyed = 0;
+    m_total = 6 + (4 * getLevel());
+    m_remained = m_total - m_destroyed;
     return GWSTATUS_CONTINUE_GAME;
 }
 
@@ -45,9 +52,12 @@ int StudentWorld::move()
         if (!m_actors.at(i)->die())
             m_actors.at(i)->doSomething();
         else
+        // free dead objects
         {
             Actor* temp = m_actors.at(i);
             m_actors.erase(m_actors.begin()+i);
+            if (temp->isAlien())
+                m_nAlien--;
             delete temp;
             i--;
         }
@@ -60,7 +70,7 @@ int StudentWorld::move()
     }
     else
     {
-        if (remained == 0)
+        if (m_remained == 0)
             return GWSTATUS_FINISHED_LEVEL;
         m_player->doSomething();
     }
@@ -69,11 +79,21 @@ int StudentWorld::move()
     int r = randInt(1, 15);
     if (r == 1)
     {
-        int randomY = randInt(0, 255);
+        int randomY = randInt(0, VIEW_HEIGHT-1);
         int r = randInt(5, 50);
         double randomSize = r / 100.0;
         Star* s = new Star(this, 255, randomY, randomSize);
         m_actors.push_back(s);
+    }
+    
+    // insert new ships
+    int maximum = 4 + (0.5 * getLevel());
+    if (m_nAlien < min(maximum, m_remained))
+    {
+        int randomY = randInt(0, VIEW_HEIGHT-1);
+        Smallgon* small = new Smallgon(this, VIEW_WIDTH-1, randomY);
+        m_actors.push_back(small);
+        m_nAlien++;
     }
     
     // Update game stats text
@@ -105,6 +125,11 @@ void StudentWorld::animate(Projectile* proj)
 {
     proj->doSomething();
     m_actors.push_back(proj);
+}
+
+NachenBlaster* StudentWorld::getPlayer()
+{
+    return m_player;
 }
 StudentWorld::~StudentWorld()
 {

@@ -19,15 +19,17 @@ public:
     virtual int move();
     virtual void cleanUp();
     virtual void animate(Projectile* proj);
+    NachenBlaster* getPlayer();
     virtual ~StudentWorld();
 
 private:
-    int destroyed;
-    int remained;
-    int total;
+    int m_destroyed;
+    int m_remained;
+    int m_total;
     std::vector<Actor*> m_actors;
     NachenBlaster* m_player;
     int m_level;
+    int m_nAlien;
 };
 
 #endif // STUDENTWORLD_H_

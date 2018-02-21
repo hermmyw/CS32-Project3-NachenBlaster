@@ -3,10 +3,27 @@
 
 // Students:  Add code to this file, Actor.h, StudentWorld.h, and StudentWorld.cpp
 
+
+/////////////////////////////////////////////////////////////////////////
+/////////////////////////////   Actor    ////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 Actor::Actor(StudentWorld* sw, int imageID, double startX, double startY, int dir, double size, int depth)
 :GraphObject(imageID, startX, startY, dir, size, depth), m_hitpoints(50)
 {
     m_world = sw;
+}
+
+void Actor::doSomething()
+{
+    if (die())
+        return;
+    if (offScreen(getX(), getY()))
+        setDead();
+}
+
+bool Actor::isAlien()
+{
+    return false;
 }
 
 double Actor::dist(int x1, int y1, int x2, int y2)
@@ -14,16 +31,22 @@ double Actor::dist(int x1, int y1, int x2, int y2)
     return sqrt(pow((x2-x1), 2) + pow((y2-y1), 2));
 }
 
-bool Actor::collide(int x1, int y1, int r1, int x2, int y2, int r2)
+bool Actor::collide(Actor* obj)
 {
+    int x1 = getX();
+    int y1 = getY();
+    int r1 = getRadius();
+    int x2 = obj->getX();
+    int y2 = obj->getY();
+    int r2 = obj->getRadius();
     if (dist(x1, x2, y1, y2) < 0.75 * (r1 + r2))
         return true;
     else
         return false;
 }
-void Actor::sufferDamage()
+void Actor::sufferDamage(int d)
 {
-    m_hitpoints -= 10;
+    m_hitpoints -= d;
 }
 
 bool Actor::die()
@@ -31,7 +54,7 @@ bool Actor::die()
     return (m_hitpoints == 0);
 }
 
-void Actor::setHitpoints(int hp)
+void Actor::setHitpoints(double hp)
 {
     m_hitpoints = hp;
 }
@@ -40,7 +63,8 @@ void Actor::setDead()
 {
     m_hitpoints = 0;
 }
-int Actor::getHitpoints()
+
+double Actor::getHitpoints()
 {
     return m_hitpoints;
 }
@@ -63,6 +87,11 @@ Actor::~Actor()
 {
     std::cerr << "Actor Destructor" << std::endl;
 }
+
+
+/////////////////////////////////////////////////////////////////////////
+////////////////////////////NachenBlaster////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 
 NachenBlaster::NachenBlaster(StudentWorld* sw)
 :Actor(sw, IID_NACHENBLASTER, 0, 128), m_nCabbage(30), m_nTorpedo(0)
@@ -141,6 +170,151 @@ NachenBlaster::~NachenBlaster()
     std::cerr << "NachenBlaster Destructor" << std::endl;
 }
 
+
+/////////////////////////////////////////////////////////////////////////
+/////////////////////////////   Alien    ////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+
+Alien::Alien(StudentWorld* sw, int imageID, double startX, double startY, int dir, double size, int depth)
+:Actor(sw, imageID, startX, startY, dir, size, depth), m_speed(2), m_length(VIEW_WIDTH)
+{ }
+
+bool Alien::isAlien()
+{
+    return true;
+}
+
+void Alien::doSomething()
+{
+    Actor::doSomething();
+    // check collision
+    if (getY() <= 0 || getY() >= VIEW_WIDTH-1 || getLength() <= 0)
+        changeDir();
+    
+    int nbX = getWorld()->getPlayer()->getX();
+    int nbY = getWorld()->getPlayer()->getY();
+    if (getX() > nbX && getY() <= nbY + 4 && getY() >= nbY - 4)
+        fire();
+    move();
+    //check collision
+}
+
+void Alien::changeDir()
+{
+    int n = getSpeed();
+    if (getY() >= VIEW_WIDTH-1)
+        moveTo(getX()-n, getY()-n);
+    else if (getY() <= 0)
+        moveTo(getX()-n, getY()+n);
+    changeDirDiff();
+}
+
+void Alien::fire()
+{
+    //fireDiff();
+    getWorld()->playSound(SOUND_ALIEN_SHOOT);
+}
+
+void Alien::move()
+{
+    int n = getSpeed();
+    // upleft
+    //moveTo(getX()-n, getY()+n);
+    // downleft
+    //moveTo(getX()-n, getY()-n);
+    // due left
+    moveTo(getX()-n, getY());
+    moveDiff();
+}
+
+void Alien::collisionReaction()
+{
+    // 不会。
+    if (collide(getWorld()->getPlayer()))
+    {
+        setDead();
+        getWorld()->playSound(SOUND_DEATH);
+        dropGoodie();
+    }
+}
+
+int Alien::getSpeed()
+{
+    return m_speed;
+}
+
+int Alien::getLength()
+{
+    return m_length;
+}
+
+void Alien::setSpeed(int s)
+{
+    m_speed = s;
+}
+
+void Alien::setLength(int l)
+{
+    m_length = l;
+}
+
+Smallgon::Smallgon(StudentWorld* sw, double startX, double startY)
+:Alien(sw, IID_SMALLGON, startX, startY)
+{
+    int n = getWorld()->getLevel();
+    setHitpoints(5 * (1 + (n-1) * 0.1));
+}
+
+void Smallgon::doSomething()
+{
+    Alien::doSomething();
+}
+void Smallgon::changeDirDiff()
+{
+    if (getLength() <= 0)
+    {
+        int randdir = randInt(1, 3);
+        int n = getWorld()->getLevel();
+        switch(randdir)
+        {
+            case 1:
+                // upleft
+                moveTo(getX()-n, getY()+n);
+                break;
+            case 2:
+                // downleft
+                moveTo(getX()-n, getY()-n);
+                break;
+            case 3:
+                // due left
+                moveTo(getX()-n, getY());
+                break;
+        }
+    }
+    int randl = randInt(1, 32);
+    setLength(randl);
+}
+
+void Smallgon::fireDiff()
+{
+    Turnip* t = new Turnip(getWorld(), getX()-14, getY());
+    getWorld()->animate(t);
+}
+
+void Smallgon::moveDiff()
+{
+    setLength(getLength()-1);
+}
+
+void Smallgon::dropGoodie()
+{
+    return;
+}
+
+/////////////////////////////////////////////////////////////////////////
+/////////////////////////////    Star    ////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+
 Star::Star(StudentWorld* sw, int x, int y, double r)
 :Actor(sw, IID_STAR, x, y, 0, r, 3)
 { }
@@ -158,17 +332,14 @@ Star::~Star()
     std::cerr << "Star Destructor" << std::endl;
 }
 
+
+/////////////////////////////////////////////////////////////////////////
+///////////////////////////// Projectile ////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+
 Projectile::Projectile(StudentWorld* sw, int imageID, double startX, double startY, int dir, double size, int depth)
 :Actor(sw, imageID, startX, startY, dir, size, depth)
 { }
-
-void Projectile::doSomething()
-{
-    if (die())
-        return;
-    if (offScreen(getX(), getY()))
-        setDead();
-}
 
 Projectile::~Projectile()
 {
@@ -181,7 +352,7 @@ Cabbage::Cabbage(StudentWorld* sw, int x, int y)
 
 void Cabbage::doSomething()
 {
-    Projectile::doSomething();
+    Actor::doSomething();
     if (!die())
     {
         moveTo(getX()+8, getY());
@@ -194,7 +365,7 @@ Turnip::Turnip(StudentWorld* sw, int x, int y)
 
 void Turnip::doSomething()
 {
-    Projectile::doSomething();
+    Actor::doSomething();
     if (!die())
     {
         moveTo(getX()-6, getY());
@@ -208,7 +379,7 @@ Torpedo::Torpedo(StudentWorld* sw, int x, int y, int d)
 
 void Torpedo::doSomething()
 {
-    Projectile::doSomething();
+    Actor::doSomething();
     if (!die())
     {
         moveTo(getX()+6, getY());
