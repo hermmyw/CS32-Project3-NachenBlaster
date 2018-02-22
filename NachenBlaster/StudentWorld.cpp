@@ -25,8 +25,8 @@ int StudentWorld::init()
     // create 30 stars
     for (int i = 0; i < 30; i++)
     {
-        int randomX = randInt(0, 255);
-        int randomY = randInt(0, 255);
+        int randomX = randInt(0, VIEW_WIDTH-1);
+        int randomY = randInt(0, VIEW_HEIGHT-1);
         double randomSize = randInt(5, 50) / 100.0;
         Star* s = new Star(this, randomX, randomY, randomSize);
         m_actors.push_back(s);
@@ -167,7 +167,9 @@ bool StudentWorld::collide()
         if (m_actors.at(i)->isAlien())
         {
             if (dist(x1, y1, xp, yp) < 0.75 * (r1 + rp))
-                return true;
+            {
+                m_actors.at(i)->collisionReaction();
+            }
         }
         
         // NBproj-alien

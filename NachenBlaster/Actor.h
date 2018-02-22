@@ -23,6 +23,7 @@ public:
     virtual bool isAlien();
     virtual bool collidableWithNB() = 0;
     virtual bool collidableWithAlien() = 0;
+    virtual void collisionReaction();
     
     // Mutator function
     void setHitpoints(double hp);

@@ -45,6 +45,11 @@ bool Actor::collide(Actor* obj)
         return false;
 }
 
+void Actor::collisionReaction()
+{
+    return;
+}
+
 void Actor::sufferDamage(int d)
 {
     m_hitpoints -= d;
@@ -293,15 +298,16 @@ void Alien::collisionReaction()
         getWorld()->animate(ex);
     }
     */
-    if (getWorld()->collide())
-    {
+    
+    //if (getWorld()->collide())
+    //{
         getWorld()->getPlayer()->sufferDamage(0);
         setDead();
         getWorld()->playSound(SOUND_DEATH);
         Explosion* ex = new Explosion(getWorld(), getX(), getY());
         getWorld()->animate(ex);
         dropGoodie();
-    }
+    //}
 }
 
 double Alien::getSpeed()
@@ -606,7 +612,7 @@ void Torpedo::doSomething()
 ///////////////////////////// Explosion  ////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
 Explosion::Explosion(StudentWorld* sw, int startX, int startY)
-:Actor(sw, IID_EXPLOSION, startX, startY, 0, 1, 0), m_tick(0)
+:Actor(sw, IID_EXPLOSION, startX, startY, 0, 0.5, 0), m_tick(0)
 { }
 
 bool Explosion::collidableWithNB()
