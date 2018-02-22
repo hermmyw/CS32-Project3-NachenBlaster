@@ -125,6 +125,7 @@ int StudentWorld::move()
     oss << "  Torpedoes: " << m_player->getTorpedo();
     string text = oss.str();
     setGameStatText(text);
+    
     return GWSTATUS_CONTINUE_GAME;
 }
 
@@ -138,18 +139,64 @@ void StudentWorld::cleanUp()
         delete temp;
     }
     delete m_player;
+    m_actors.clear();
 }
 
-void StudentWorld::animate(Projectile* proj)
+void StudentWorld::animate(Actor* obj)
 {
-    proj->doSomething();
-    m_actors.push_back(proj);
+    obj->doSomething();
+    m_actors.push_back(obj);
+}
+
+bool StudentWorld::collide()
+{
+    for (int i = 0; i < m_actors.size(); i++)
+    {
+        int x1 = m_actors.at(i)->getX();
+        int y1 = m_actors.at(i)->getY();
+        int r1 = m_actors.at(i)->getRadius();
+        int xp = m_player->getX();
+        int yp = m_player->getY();
+        int rp = m_player->getRadius();
+        // if a alien/alien's projectile collides with a nachenblaster
+        // if a alien collides with a nachenblaster's projectile
+        
+        // alien-NB
+        // alienProj-NB
+        //if (m_actors.at(i)->collidableWithNB())
+        if (m_actors.at(i)->isAlien())
+        {
+            if (dist(x1, y1, xp, yp) < 0.75 * (r1 + rp))
+                return true;
+        }
+        
+        // NBproj-alien
+        // NBproj!=alienProj
+        if (m_actors.at(i)->collidableWithAlien())
+        {
+            for (int j = i+1; j < m_actors.size(); j++)
+            {
+                int x2 = m_actors.at(j)->getX();
+                int y2 = m_actors.at(j)->getY();
+                int r2 = m_actors.at(j)->getRadius();
+                if (dist(x1, y1, x2, y2) < 0.75 * (r1 + r2))
+                    return true;
+            }
+        }
+    }
+    return false;
 }
 
 NachenBlaster* StudentWorld::getPlayer()
 {
     return m_player;
 }
+
+double StudentWorld::dist(int x1, int y1, int x2, int y2)
+{
+    return sqrt(pow((x2-x1), 2) + pow((y2-y1), 2));
+}
+
 StudentWorld::~StudentWorld()
 {
     cleanUp();

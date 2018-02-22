@@ -21,6 +21,8 @@ public:
     virtual void sufferDamage(int d);
     virtual bool collide(Actor* obj);
     virtual bool isAlien();
+    virtual bool collidableWithNB() = 0;
+    virtual bool collidableWithAlien() = 0;
     
     // Mutator function
     void setHitpoints(double hp);
@@ -48,7 +50,8 @@ class NachenBlaster : public Actor
 public:
     NachenBlaster(StudentWorld* sw);
     virtual void doSomething();
-    virtual void sufferDamage();
+    virtual bool collidableWithNB();
+    virtual bool collidableWithAlien();
     int getCabbage();
     int getTorpedo();
     virtual ~NachenBlaster();
@@ -60,6 +63,8 @@ class Star : public Actor
 {
 public:
     Star(StudentWorld*sw, int x, int y, double r);
+    virtual bool collidableWithNB();
+    virtual bool collidableWithAlien();
     virtual void doSomething();
     virtual ~Star();
 };
@@ -68,6 +73,8 @@ class Alien : public Actor
 public:
     Alien(StudentWorld* sw, int imageID, double startX, double startY, int dir = 0, double size = 1.5, int depth = 1);
     virtual bool isAlien();
+    virtual bool collidableWithNB();
+    virtual bool collidableWithAlien();
     virtual void doSomething();
     virtual void changeDir();
     virtual void fire();
@@ -122,6 +129,8 @@ class Projectile : public Actor
 {
 public:
     Projectile(StudentWorld* sw, int imageID, double startX, double startY, int dir = 0, double size = 1.0, int depth = 0);
+    virtual bool collidableWithNB() = 0;
+    virtual bool collidableWithAlien() = 0;
     virtual void doSomething() = 0;
     virtual ~Projectile();
 private:
@@ -132,6 +141,8 @@ class Cabbage : public Projectile
 {
 public:
     Cabbage(StudentWorld* sw, int x, int y);
+    virtual bool collidableWithNB();
+    virtual bool collidableWithAlien();
     virtual void doSomething();
 };
 
@@ -139,6 +150,8 @@ class Turnip : public Projectile
 {
 public:
     Turnip(StudentWorld* sw, int x, int y);
+    virtual bool collidableWithNB();
+    virtual bool collidableWithAlien();
     virtual void doSomething();
 };
 
@@ -146,18 +159,29 @@ class Torpedo : public Projectile
 {
 public:
     Torpedo(StudentWorld* sw, int x, int y, int d);
+    virtual bool collidableWithNB();
+    virtual bool collidableWithAlien();
     virtual void doSomething();
 };
+
 class Goodie : public Actor
 {
 public:
     Goodie(StudentWorld* sw, int x, int y);
+    virtual bool collidableWithNB();
+    virtual bool collidableWithAlien();
 };
+
 class Explosion : public Actor
 {
 public:
     Explosion(StudentWorld* sw, int x, int y);
+    virtual bool collidableWithNB();
+    virtual bool collidableWithAlien();
     virtual void doSomething();
+    int getTickCount();
+private:
+    int m_tick;
 };
 
 

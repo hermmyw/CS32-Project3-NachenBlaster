@@ -44,6 +44,7 @@ bool Actor::collide(Actor* obj)
     else
         return false;
 }
+
 void Actor::sufferDamage(int d)
 {
     m_hitpoints -= d;
@@ -99,6 +100,16 @@ NachenBlaster::NachenBlaster(StudentWorld* sw)
     setHitpoints(50);
 }
 
+bool NachenBlaster::collidableWithNB()
+{
+    return false;
+}
+
+bool NachenBlaster::collidableWithAlien()
+{
+    return true;
+}
+
 void NachenBlaster::doSomething()
 {
     if (die())
@@ -151,10 +162,6 @@ void NachenBlaster::doSomething()
             m_nCabbage++;
     }
 }
-void NachenBlaster::sufferDamage()
-{
-    setHitpoints(getHitpoints()-10);
-}
 
 int NachenBlaster::getCabbage()
 {
@@ -189,11 +196,27 @@ bool Alien::isAlien()
     return true;
 }
 
+bool Alien::collidableWithNB()
+{
+    return true;
+}
+
+bool Alien::collidableWithAlien()
+{
+    return false;
+}
+
 void Alien::doSomething()
 {
-    Actor::doSomething();
+    if (die())
+        return;
+    if (getX() <= 0)
+        setDead();
     // check collision
-    
+    if (getWorld()->collide())
+    {
+        collisionReaction();
+    }
     // if need new flight plan
     if (getY() <= 0 || getY() >= VIEW_WIDTH-1 || getLength() <= 0)
         changeDir();
@@ -208,20 +231,21 @@ void Alien::doSomething()
     move();
     
     //check collision
+    if (getWorld()->collide())
+    {
+        collisionReaction();
+    }
 }
 
 void Alien::changeDir()
 {
-    double n = getSpeed();
     if (getY() >= VIEW_WIDTH-1)
     {
         setTravelDir(DOWNLEFT);
-        //moveTo(getX()-n, getY()-n);
     }
     else if (getY() <= 0)
     {
         setTravelDir(UPLEFT);
-        //moveTo(getX()-n, getY()+n);
     }
     changeDirDiff();
 }
@@ -258,11 +282,24 @@ void Alien::move()
 
 void Alien::collisionReaction()
 {
-    // 不会。
-    if (collide(getWorld()->getPlayer()))
+    // if (collide with NB proj)
+    sufferDamage(0);
+    /*if (getHitpoints() <= 0)
     {
+        getWorld()->increaseScore(0);
         setDead();
         getWorld()->playSound(SOUND_DEATH);
+        Explosion* ex = new Explosion(getWorld(), getX(), getY());
+        getWorld()->animate(ex);
+    }
+    */
+    if (getWorld()->collide())
+    {
+        getWorld()->getPlayer()->sufferDamage(0);
+        setDead();
+        getWorld()->playSound(SOUND_DEATH);
+        Explosion* ex = new Explosion(getWorld(), getX(), getY());
+        getWorld()->animate(ex);
         dropGoodie();
     }
 }
@@ -315,7 +352,6 @@ void Smallgon::changeDirDiff()
     if (getLength() <= 0)
     {
         int randdir = randInt(1, 3);
-        int n = getWorld()->getLevel();
         switch(randdir)
         {
             case 1:
@@ -368,7 +404,7 @@ void Smoregon::changeDirDiff()
     if (getLength() <= 0)
     {
         int randdir = randInt(1, 3);
-        int n = getWorld()->getLevel();
+        //int n = getWorld()->getLevel();
         switch(randdir)
         {
             case 1:
@@ -468,6 +504,15 @@ void Star::doSomething()
         setDead();
 }
 
+bool Star::collidableWithNB()
+{
+    return false;
+}
+bool Star::collidableWithAlien()
+{
+    return false;
+}
+
 Star::~Star()
 {
     std::cerr << "Star Destructor" << std::endl;
@@ -491,6 +536,16 @@ Cabbage::Cabbage(StudentWorld* sw, int x, int y)
 :Projectile(sw, IID_CABBAGE, x, y, 0, 0.5, 1)
 { }
 
+bool Cabbage::collidableWithNB()
+{
+    return false;
+}
+
+bool Cabbage::collidableWithAlien()
+{
+    return true;
+}
+
 void Cabbage::doSomething()
 {
     Actor::doSomething();
@@ -503,6 +558,16 @@ void Cabbage::doSomething()
 Turnip::Turnip(StudentWorld* sw, int x, int y)
 :Projectile(sw, IID_TURNIP, x, y, 0, 0.5, 1)
 { }
+
+bool Turnip::collidableWithNB()
+{
+    return true;
+}
+
+bool Turnip::collidableWithAlien()
+{
+    return false;
+}
 
 void Turnip::doSomething()
 {
@@ -518,6 +583,16 @@ Torpedo::Torpedo(StudentWorld* sw, int x, int y, int d)
 :Projectile(sw, IID_TORPEDO, x, y, d, 0.5, 1)
 { }
 
+bool Torpedo::collidableWithNB()
+{
+    return true;
+}
+
+bool Torpedo::collidableWithAlien()
+{
+    return true;
+}
+
 void Torpedo::doSomething()
 {
     Actor::doSomething();
@@ -525,4 +600,33 @@ void Torpedo::doSomething()
     {
         moveTo(getX()+6, getY());
     }
+}
+
+/////////////////////////////////////////////////////////////////////////
+///////////////////////////// Explosion  ////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+Explosion::Explosion(StudentWorld* sw, int startX, int startY)
+:Actor(sw, IID_EXPLOSION, startX, startY, 0, 1, 0), m_tick(0)
+{ }
+
+bool Explosion::collidableWithNB()
+{
+    return false;
+}
+bool Explosion::collidableWithAlien()
+{
+    return false;
+}
+
+int Explosion::getTickCount()
+{
+    return m_tick;
+}
+
+void Explosion::doSomething()
+{
+    setSize(1.5 * getSize());
+    m_tick++;
+    if (getTickCount() > 4)
+        setDead();
 }

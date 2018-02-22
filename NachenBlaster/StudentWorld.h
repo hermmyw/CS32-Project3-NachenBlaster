@@ -18,7 +18,8 @@ public:
     virtual int init();
     virtual int move();
     virtual void cleanUp();
-    virtual void animate(Projectile* proj);
+    virtual void animate(Actor* obj);
+    virtual bool collide();
     NachenBlaster* getPlayer();
     virtual ~StudentWorld();
 
@@ -30,6 +31,7 @@ private:
     NachenBlaster* m_player;
     int m_level;
     int m_nAlien;
+    double dist(int x1, int y1, int x2, int y2);
 };
 
 #endif // STUDENTWORLD_H_
