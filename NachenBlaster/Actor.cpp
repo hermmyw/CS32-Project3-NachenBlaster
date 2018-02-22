@@ -31,6 +31,10 @@ double Actor::dist(int x1, int y1, int x2, int y2)
     return sqrt(pow((x2-x1), 2) + pow((y2-y1), 2));
 }
 
+int Actor::getDamagePoints()
+{
+    return 0;
+}
 
 void Actor::sufferDamage(int d)
 {
@@ -123,6 +127,7 @@ void NachenBlaster::doSomethingDiff()
                         {
                             Cabbage* c = new Cabbage(getWorld(), getX()+12, getY());
                             getWorld()->animate(c);
+                            getWorld()->playSound(SOUND_PLAYER_SHOOT);
                         }
                         m_nCabbage -= 5;
                     }
@@ -131,7 +136,9 @@ void NachenBlaster::doSomethingDiff()
                     if (m_nTorpedo > 0)
                     {
                         Torpedo* t = new Torpedo(getWorld(), getX()+12, getY(), 0);
+                        t->setLabel(PLAYER);
                         getWorld()->animate(t);
+                        getWorld()->playSound(SOUND_TORPEDO);
                         m_nTorpedo--;
                     }
                     break;
@@ -213,6 +220,7 @@ void Alien::dropGoodie()
 void Alien::sufferDamage(int d)
 {
     setHitpoints(getHitpoints()-d);
+    
     if (getHitpoints() <= 0)
     {
         setDead();
@@ -261,7 +269,7 @@ void Alien::changeDir()
 
 void Alien::fire()
 {
-    //fireDiff();
+    fireDiff();
     getWorld()->playSound(SOUND_ALIEN_SHOOT);
 }
 
@@ -332,7 +340,8 @@ Smallgon::Smallgon(StudentWorld* sw, double startX, double startY)
 :Alien(sw, IID_SMALLGON, startX, startY)
 {
     int n = getWorld()->getLevel();
-    setHitpoints(5 * (1 + (n-1) * 0.1));
+    int initHP = 5 * (1 + (n-1) * 0.1);
+    setHitpoints(initHP);
 }
 
 void Smallgon::changeDirDiff()
@@ -361,6 +370,7 @@ void Smallgon::fireDiff()
 {
     Turnip* t = new Turnip(getWorld(), getX()-14, getY());
     getWorld()->animate(t);
+    getWorld()->playSound(SOUND_ALIEN_SHOOT);
 }
 
 void Smallgon::moveDiff()
@@ -380,15 +390,14 @@ void Smallgon::checkCollision()
         getWorld()->getPlayer()->sufferDamage(5);
         fatalCollision(250);
     }
+    /*
     else if (getWorld()->collide(this))
     {
         if (die())
-        {
             fatalCollision(250);
-        }
         else
             getWorld()->playSound(SOUND_BLAST);
-    }
+    }*/
 }
 
 //////////////////////////Smoregon//////////////////////////////////
@@ -429,6 +438,7 @@ void Smoregon::fireDiff()
 {
     Turnip* t = new Turnip(getWorld(), getX()-14, getY());
     getWorld()->animate(t);
+    getWorld()->playSound(SOUND_ALIEN_SHOOT);
 }
 
 void Smoregon::moveDiff()
@@ -462,7 +472,7 @@ void Smoregon::checkCollision()
 }
 
 //////////////////////////Snagglegon////////////////////////////////
-Snagglegon::Snagglegon(StudentWorld* sw, double startX, double startY, int travelDir)
+Snagglegon::Snagglegon(StudentWorld* sw, double startX, double startY)
 :Alien(sw, IID_SNAGGLEGON, startX, startY)
 {
     int n = getWorld()->getLevel();
@@ -491,7 +501,9 @@ void Snagglegon::changeDirDiff()
 void Snagglegon::fireDiff()
 {
     Torpedo* t = new Torpedo(getWorld(), getX()-14, getY(), 180);
+    t->setLabel(ENEMY);
     getWorld()->animate(t);
+    getWorld()->playSound(SOUND_TORPEDO);
 }
 
 void Snagglegon::moveDiff()
@@ -556,10 +568,15 @@ Projectile::Projectile(StudentWorld* sw, int imageID, double startX, double star
 :Actor(sw, imageID, startX, startY, dir, size, depth)
 { }
 
- void Projectile::doSomethingDiff()
+void Projectile::doSomethingDiff()
 {
     if (getX() < 0 || getX() >= VIEW_WIDTH)
         setDead();
+}
+
+void Projectile::sufferDamage(int d)
+{
+    return;
 }
 
 Projectile::~Projectile()
@@ -577,19 +594,14 @@ Cabbage::Cabbage(StudentWorld* sw, int x, int y)
 
 void Cabbage::doSomethingDiff()
 {
-    // if collide with an alien
-    // setDead();
-    // alien.sufferDamage(2);
-    
+    Projectile::doSomethingDiff();
+    checkCollision();
     if (!die())
     {
         moveTo(getX()+8, getY());
         setDirection(getDirection()+20);
     }
-    
-    // if collide with an alien
-    // setDead();
-    // alien.sufferDamage(2);
+    checkCollision();
 }
 
 void Cabbage::checkCollision()
@@ -597,8 +609,12 @@ void Cabbage::checkCollision()
     if (getWorld()->collide(this))
     {
         setDead();
-        // how should i make the alien ship suffer damage?
     }
+}
+
+int Cabbage::getDamagePoints()
+{
+    return 2;
 }
 
 //////////////////////////////Turnip///////////////////////////////////
@@ -610,6 +626,7 @@ Turnip::Turnip(StudentWorld* sw, int x, int y)
 
 void Turnip::doSomethingDiff()
 {
+    Projectile::doSomethingDiff();
     checkCollision();
     if (!die())
     {
@@ -628,6 +645,11 @@ void Turnip::checkCollision()
     }
 }
 
+int Turnip::getDamagePoints()
+{
+    return 2;
+}
+
 ///////////////////////////////Torpedo//////////////////////////////////
 Torpedo::Torpedo(StudentWorld* sw, int x, int y, int d)
 :Projectile(sw, IID_TORPEDO, x, y, d, 0.5, 1)
@@ -638,9 +660,15 @@ Torpedo::Torpedo(StudentWorld* sw, int x, int y, int d)
 
 void Torpedo::doSomethingDiff()
 {
+    Projectile::doSomethingDiff();
     checkCollision();
     if (!die())
-        moveTo(getX()+6, getY());
+    {
+        if (getLabel() == PLAYER)
+            moveTo(getX()+6, getY());
+        if (getLabel() == ENEMY)
+            moveTo(getX()-6, getY());
+    }
     checkCollision();
 }
 
@@ -649,13 +677,17 @@ void Torpedo::checkCollision()
     if (getWorld()->collide(this))
     {
         setDead();
-        // how should i make the alien ship suffer damage?
     }
     if (collideNB())
     {
         setDead();
         getWorld()->getPlayer()->sufferDamage(8);
     }
+}
+
+int Torpedo::getDamagePoints()
+{
+    return 8;
 }
 
 /////////////////////////////////////////////////////////////////////////

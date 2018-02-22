@@ -25,6 +25,7 @@ public:
     virtual void doSomething();    // check alive
     virtual void sufferDamage(int d);
     virtual bool isAlien();
+    virtual int getDamagePoints();
     
     // Accessor
     double getHitpoints();
@@ -148,7 +149,7 @@ public:
 class Snagglegon : public Alien
 {
 public:
-    Snagglegon(StudentWorld* sw, double startX, double startY, int travelDir);
+    Snagglegon(StudentWorld* sw, double startX, double startY);
     virtual void changeDirDiff();
     virtual void fireDiff();
     virtual void moveDiff();
@@ -167,10 +168,12 @@ class Projectile : public Actor
 public:
     Projectile(StudentWorld* sw, int imageID, double startX, double startY, int dir = 0, double size = 1.0, int depth = 0);
     virtual void checkCollision() = 0;
+    virtual int getDamagePoints() = 0;
+    virtual void sufferDamage(int d);
+    virtual void doSomethingDiff();
     virtual ~Projectile();
 private:
-    virtual void doSomethingDiff();
-    StudentWorld* m_world;
+    
 };
 
 class Cabbage : public Projectile
@@ -178,6 +181,7 @@ class Cabbage : public Projectile
 public:
     Cabbage(StudentWorld* sw, int x, int y);
     virtual void checkCollision();
+    virtual int getDamagePoints();
 private:
     virtual void doSomethingDiff();
 };
@@ -187,6 +191,7 @@ class Turnip : public Projectile
 public:
     Turnip(StudentWorld* sw, int x, int y);
     virtual void checkCollision();
+    virtual int getDamagePoints();
 
 private:
     virtual void doSomethingDiff();
@@ -197,6 +202,7 @@ class Torpedo : public Projectile
 public:
     Torpedo(StudentWorld* sw, int x, int y, int d);
     virtual void checkCollision();
+    virtual int getDamagePoints();
 
 private:
     virtual void doSomethingDiff();

@@ -103,7 +103,7 @@ int StudentWorld::move()
         else if (randShip <= S1 + S2)
             a = new Smoregon(this, VIEW_WIDTH-1, randomY);
         else
-            a = new Snagglegon(this, VIEW_WIDTH-1, randomY, 0);
+            a = new Snagglegon(this, VIEW_WIDTH-1, randomY);
         
         m_actors.push_back(a);
         m_nAlien++;
@@ -158,7 +158,16 @@ bool StudentWorld::collide(Actor* obj)
             int r2 = obj->getRadius();
             int label2 = obj->getLabel();
             if (label1 != NEUTRAL && label2 != NEUTRAL && label1 != label2 && dist(x1, y1, x2, y2) < 0.75 * (r1 + r2))
+            {
+                if (label2 == ENEMY)  // obj is an alien, m_actors[i] is a player proj
+                {
+                    obj->sufferDamage(2);
+                    m_actors.at(i)->setDead();
+                }
+                else if (label1 == ENEMY)  // obj is a player proj, m_actors[i] is an alien
+                    m_actors.at(i)->sufferDamage(2);
                 return true;
+            }
         }
     }
     return false;
