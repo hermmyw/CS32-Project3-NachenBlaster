@@ -21,8 +21,8 @@ StudentWorld::StudentWorld(string assetDir)
 
 int StudentWorld::init()
 {
-    m_level = getLevel();
     // create 30 stars
+    m_level = getLevel();
     for (int i = 0; i < 30; i++)
     {
         int randomX = randInt(0, VIEW_WIDTH-1);
@@ -39,6 +39,7 @@ int StudentWorld::init()
     m_destroyed = 0;
     m_total = 6 + (4 * getLevel());
     m_remained = m_total - m_destroyed;
+    
     return GWSTATUS_CONTINUE_GAME;
 }
 
@@ -60,13 +61,14 @@ int StudentWorld::move()
             delete temp;
             i--;
         }
-        
     }
+    
     if (m_player->die())
     {
         decLives();
         return GWSTATUS_PLAYER_DIED;
     }
+    
     else
     {
         if (m_remained == 0)
@@ -123,17 +125,16 @@ int StudentWorld::move()
 
 void StudentWorld::cleanUp()
 {
-    // stars, aliens, explosions, projectiles...
-    while (!m_actors.empty())
+    if (!m_actors.empty())
     {
-        Actor* temp = m_actors.back();
-        m_actors.pop_back();
-        delete temp;
+        m_actors.push_back(m_player);
+        vector<Actor*>::iterator p = m_actors.begin();
+        while (p != m_actors.end())
+        {
+            delete *p;
+            p = m_actors.erase(p);
+        }
     }
-    
-    // BUG HERE
-    delete m_player;
-    m_actors.clear();
 }
 
 void StudentWorld::animate(Actor* obj)

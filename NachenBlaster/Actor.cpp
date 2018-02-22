@@ -216,7 +216,6 @@ void Alien::sufferDamage(int d)
     if (getHitpoints() <= 0)
     {
         setDead();
-        //getWorld()->increaseScore(s);
         getWorld()->playSound(SOUND_DEATH);
         Explosion* ex = new Explosion(getWorld(), getX(), getY());
         getWorld()->animate(ex);
@@ -229,7 +228,7 @@ void Alien::doSomethingDiff()
 {
     if (getX() <= 0)
         setDead();
-    // check collision
+    
     checkCollision();
     
     // if need new flight plan
@@ -242,10 +241,8 @@ void Alien::doSomethingDiff()
     if (getX() > nbX && getY() <= nbY + 4 && getY() >= nbY - 4)
         fire();
     
-    // continue moving
     move();
-    
-    //check collision
+
     checkCollision();
 }
 
