@@ -27,8 +27,7 @@ int StudentWorld::init()
     {
         int randomX = randInt(0, VIEW_WIDTH-1);
         int randomY = randInt(0, VIEW_HEIGHT-1);
-        double randomSize = randInt(5, 50) / 100.0;
-        Star* s = new Star(this, randomX, randomY, randomSize);
+        Star* s = new Star(this, randomX, randomY);
         m_actors.push_back(s);
     }
     
@@ -80,9 +79,7 @@ int StudentWorld::move()
     if (r == 1)
     {
         int randomY = randInt(0, VIEW_HEIGHT-1);
-        int r = randInt(5, 50);
-        double randomSize = r / 100.0;
-        Star* s = new Star(this, 255, randomY, randomSize);
+        Star* s = new Star(this, VIEW_HEIGHT-1, randomY);
         m_actors.push_back(s);
     }
     
@@ -100,17 +97,12 @@ int StudentWorld::move()
         int S = S1 + S2 + S3;
         int randShip = randInt(1, S);
         if (randShip >= 1 && randShip <= S1)
-        {
             a = new Smallgon(this, VIEW_WIDTH-1, randomY);
-        }
         else if (randShip <= S1 + S2)
-        {
             a = new Smoregon(this, VIEW_WIDTH-1, randomY);
-        }
         else
-        {
             a = new Snagglegon(this, VIEW_WIDTH-1, randomY, 0);
-        }
+        
         m_actors.push_back(a);
         m_nAlien++;
     }
@@ -138,6 +130,8 @@ void StudentWorld::cleanUp()
         m_actors.pop_back();
         delete temp;
     }
+    
+    // BUG HERE
     delete m_player;
     m_actors.clear();
 }
@@ -148,42 +142,22 @@ void StudentWorld::animate(Actor* obj)
     m_actors.push_back(obj);
 }
 
-bool StudentWorld::collide()
+bool StudentWorld::collide(Actor* obj)
 {
     for (int i = 0; i < m_actors.size(); i++)
     {
-        int x1 = m_actors.at(i)->getX();
-        int y1 = m_actors.at(i)->getY();
-        int r1 = m_actors.at(i)->getRadius();
-        int xp = m_player->getX();
-        int yp = m_player->getY();
-        int rp = m_player->getRadius();
-        // if a alien/alien's projectile collides with a nachenblaster
-        // if a alien collides with a nachenblaster's projectile
-        
-        // alien-NB
-        // alienProj-NB
-        //if (m_actors.at(i)->collidableWithNB())
-        if (m_actors.at(i)->isAlien())
+        if (obj != m_actors.at(i))
         {
-            if (dist(x1, y1, xp, yp) < 0.75 * (r1 + rp))
-            {
-                m_actors.at(i)->collisionReaction();
-            }
-        }
-        
-        // NBproj-alien
-        // NBproj!=alienProj
-        if (m_actors.at(i)->collidableWithAlien())
-        {
-            for (int j = i+1; j < m_actors.size(); j++)
-            {
-                int x2 = m_actors.at(j)->getX();
-                int y2 = m_actors.at(j)->getY();
-                int r2 = m_actors.at(j)->getRadius();
-                if (dist(x1, y1, x2, y2) < 0.75 * (r1 + r2))
-                    return true;
-            }
+            int x1 = m_actors.at(i)->getX();
+            int y1 = m_actors.at(i)->getY();
+            int r1 = m_actors.at(i)->getRadius();
+            int label1 = m_actors.at(i)->getLabel();
+            int x2 = obj->getX();
+            int y2 = obj->getY();
+            int r2 = obj->getRadius();
+            int label2 = obj->getLabel();
+            if (label1 != NEUTRAL && label2 != NEUTRAL && label1 != label2 && dist(x1, y1, x2, y2) < 0.75 * (r1 + r2))
+                return true;
         }
     }
     return false;

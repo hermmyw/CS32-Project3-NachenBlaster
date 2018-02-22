@@ -19,7 +19,7 @@ public:
     virtual int move();
     virtual void cleanUp();
     virtual void animate(Actor* obj);
-    virtual bool collide();
+    virtual bool collide(Actor* obj);
     NachenBlaster* getPlayer();
     virtual ~StudentWorld();
 
