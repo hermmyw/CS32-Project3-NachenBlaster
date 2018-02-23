@@ -270,7 +270,7 @@ void Alien::changeDir()
 void Alien::fire()
 {
     fireDiff();
-    getWorld()->playSound(SOUND_ALIEN_SHOOT);
+    //getWorld()->playSound(SOUND_ALIEN_SHOOT);
 }
 
 void Alien::move()
@@ -368,9 +368,13 @@ void Smallgon::changeDirDiff()
 
 void Smallgon::fireDiff()
 {
-    Turnip* t = new Turnip(getWorld(), getX()-14, getY());
-    getWorld()->animate(t);
-    getWorld()->playSound(SOUND_ALIEN_SHOOT);
+    int chance = randInt(1, (20 / getWorld()->getLevel() + 5));
+    if (chance == 1)
+    {
+        Turnip* t = new Turnip(getWorld(), getX()-14, getY());
+        getWorld()->animate(t);
+        getWorld()->playSound(SOUND_ALIEN_SHOOT);
+    }
 }
 
 void Smallgon::moveDiff()
@@ -385,19 +389,21 @@ void Smallgon::dropGoodie()
 
 void Smallgon::checkCollision()
 {
+    double damage = 0.0;
     if (collideNB())
     {
         getWorld()->getPlayer()->sufferDamage(5);
         fatalCollision(250);
     }
-    /*
-    else if (getWorld()->collide(this))
+    
+    else if (getWorld()->collide(this, damage))
     {
+        sufferDamage(damage);
         if (die())
             fatalCollision(250);
         else
             getWorld()->playSound(SOUND_BLAST);
-    }*/
+    }
 }
 
 //////////////////////////Smoregon//////////////////////////////////
@@ -436,9 +442,19 @@ void Smoregon::changeDirDiff()
 
 void Smoregon::fireDiff()
 {
-    Turnip* t = new Turnip(getWorld(), getX()-14, getY());
-    getWorld()->animate(t);
-    getWorld()->playSound(SOUND_ALIEN_SHOOT);
+    int chance = randInt(1, (20 / getWorld()->getLevel() + 5));
+    if (chance == 1)
+    {
+        Turnip* t = new Turnip(getWorld(), getX()-14, getY());
+        getWorld()->animate(t);
+        getWorld()->playSound(SOUND_ALIEN_SHOOT);
+    }
+    if (chance == 2)
+    {
+        setTravelDir(DUELEFT);
+        setLength(VIEW_WIDTH);
+        setSpeed(5.0);
+    }
 }
 
 void Smoregon::moveDiff()
@@ -453,14 +469,16 @@ void Smoregon::dropGoodie()
 
 void Smoregon::checkCollision()
 {
+    double damage = 0.0;
     if (collideNB())
     {
         getWorld()->getPlayer()->sufferDamage(5);
         fatalCollision(250);
         dropGoodie();
     }
-    else if (getWorld()->collide(this))
+    else if (getWorld()->collide(this, damage))
     {
+        sufferDamage(damage);
         if (die())
         {
             fatalCollision(250);
@@ -500,10 +518,14 @@ void Snagglegon::changeDirDiff()
 
 void Snagglegon::fireDiff()
 {
-    Torpedo* t = new Torpedo(getWorld(), getX()-14, getY(), 180);
-    t->setLabel(ENEMY);
-    getWorld()->animate(t);
-    getWorld()->playSound(SOUND_TORPEDO);
+    int chance = randInt(1, (15 / getWorld()->getLevel() + 10));
+    if (chance == 1)
+        {
+        Torpedo* t = new Torpedo(getWorld(), getX()-14, getY(), 180);
+        t->setLabel(ENEMY);
+        getWorld()->animate(t);
+        getWorld()->playSound(SOUND_TORPEDO);
+    }
 }
 
 void Snagglegon::moveDiff()
@@ -518,14 +540,16 @@ void Snagglegon::dropGoodie()
 
 void Snagglegon::checkCollision()
 {
+    double damage = 0.0;
     if (collideNB())
     {
         getWorld()->getPlayer()->sufferDamage(15);
         fatalCollision(1000);
         dropGoodie();
     }
-    else if (getWorld()->collide(this))
+    else if (getWorld()->collide(this, damage))
     {
+        sufferDamage(damage);
         if (die())
         {
             fatalCollision(1000);
@@ -606,7 +630,8 @@ void Cabbage::doSomethingDiff()
 
 void Cabbage::checkCollision()
 {
-    if (getWorld()->collide(this))
+    double damage = 0.0;
+    if (getWorld()->collide(this, damage))
     {
         setDead();
     }
@@ -674,7 +699,8 @@ void Torpedo::doSomethingDiff()
 
 void Torpedo::checkCollision()
 {
-    if (getWorld()->collide(this))
+    double damage = 0.0;
+    if (getWorld()->collide(this, damage))
     {
         setDead();
     }
