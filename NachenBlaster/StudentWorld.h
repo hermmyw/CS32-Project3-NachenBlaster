@@ -22,6 +22,7 @@ public:
     void addDestroyed();
     bool collide(Actor* obj, double& damage);
     NachenBlaster* getPlayer();
+    
     virtual ~StudentWorld();
 
 private:

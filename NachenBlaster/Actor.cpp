@@ -20,9 +20,11 @@ Actor::Actor(StudentWorld* sw, int imageID, double startX, double startY, int di
 
 void Actor::doSomething()
 {
+	// For every actor, we need to first check if it is alive.
     if (dead())
         return;
     else
+    	// Derived classes perform differentiated actions.
         doSomethingDiff();
 }
 
@@ -33,6 +35,7 @@ void Actor::sufferDamage(double d)
 
 bool Actor::alienShip() const
 {
+	// Default
     return false;
 }
 
@@ -118,6 +121,7 @@ NachenBlaster::NachenBlaster(StudentWorld* sw)
 
 void NachenBlaster::doSomethingDiff()
 {
+	// Get user keyboard input.
     int ch;
     if (getWorld()->getKey(ch))
     {
@@ -126,6 +130,7 @@ void NachenBlaster::doSomethingDiff()
             case KEY_PRESS_SPACE:
                 if (m_nCabbage >= 5)
                 {
+                	// Fire 5 cabbages.
                     for (int i = 0; i < 5; i++)
                     {
                         Cabbage* c = new Cabbage(getWorld(), getX()+12, getY());
@@ -138,6 +143,7 @@ void NachenBlaster::doSomethingDiff()
             case KEY_PRESS_TAB:
                 if (m_nTorpedo > 0)
                 {
+                	// Fire 1 torpedo.
                     Torpedo* t = new Torpedo(getWorld(), getX()+12, getY(), 0);
                     t->setLabel(PLAYER);
                     getWorld()->animate(t);
@@ -163,6 +169,7 @@ void NachenBlaster::doSomethingDiff()
                 break;
         }
     }
+    // Increase cabbage power in any situation.
     if (m_nCabbage < FULLCABBAGE)
         m_nCabbage++;
 }
@@ -203,6 +210,7 @@ Star::Star(StudentWorld* sw, double startX, double startY)
 {
     double randomSize = randInt(5, 50) / 100.0;
     setSize(randomSize);
+    // A star can't be attacked and can't attack, so it is neutral.
     setLabel(NEUTRAL);
 }
 
@@ -211,6 +219,7 @@ void Star::doSomethingDiff()
     // The star must move 1 pixel to the left.
     int x = getX()-1;
     moveTo(x, getY());
+    // Offscreen
     if (getX() < 0)
         setDead();
 }
@@ -226,13 +235,15 @@ Star::~Star()
 Explosion::Explosion(StudentWorld* sw, double startX, double startY)
 :Actor(sw, IID_EXPLOSION, startX, startY, 0, 0.5, 0), m_tick(0)
 {
+	// An explosion can't be attacked and can't attack, so it is neutral.
     setLabel(NEUTRAL);
 }
 
 void Explosion::doSomethingDiff()
 {
-    // is it tooooo big?
+    // Increase size.
     setSize(1.5 * getSize());
+    // Keep track of ticks.
     m_tick++;
     if (m_tick > 4)
         setDead();
@@ -249,6 +260,7 @@ Projectile::Projectile(StudentWorld* sw, int imageID, double startX, double star
 
 void Projectile::doSomethingDiff()
 {
+	// Offscreen.
     if (getX() < 0 || getX() >= VIEW_WIDTH)
         setDead();
     else
@@ -278,6 +290,7 @@ Projectile::~Projectile()
 Cabbage::Cabbage(StudentWorld* sw, double startX, double startY)
 :Projectile(sw, IID_CABBAGE, startX, startY, 0, 0.5, 1)
 {
+	// Player projectile.
     setLabel(PLAYER);
 }
 
@@ -289,6 +302,8 @@ void Cabbage::moveProjectile()
 
 void Cabbage::checkCollision()
 {
+	// If it collides with anything, set it to dead.
+	// Alien ships will handle damage by themselves.
     double damage = 0.0;
     if (getWorld()->collide(this, damage))
         setDead();
@@ -314,6 +329,7 @@ void Turnip::moveProjectile()
 
 void Turnip::checkCollision()
 {
+	// If it collides with nachenBlaster.
     if (collideNB())
     {
         setDead();
@@ -337,25 +353,30 @@ Torpedo::Torpedo(StudentWorld* sw, double startX, double startY, int d)
 
 void Torpedo::moveProjectile()
 {
+	// If it is a player projectile, it moves right.
     if (getLabel() == PLAYER)
         moveTo(getX()+8, getY());
+    // If it is an enemy projectile, it moves left.
     else
         moveTo(getX()-8, getY());
 }
 
 void Torpedo::checkCollision()
 {
-    double damage = 0.0;
-    if (getWorld()->collide(this, damage))
-    {
-        setDead();
-    }
-    if (collideNB())
+	double damage = 0.0;
+	// Enemy projectile:
+	if (collideNB())
     {
         setDead();
         getWorld()->getPlayer()->sufferDamage(TORPEDODAMAGE);
         getWorld()->playSound(SOUND_BLAST);
     }
+    // Player projectile:
+    else if (getWorld()->collide(this, damage))
+    {
+        setDead();
+    }
+    
 }
 
 int Torpedo::getDamagePoints() const
@@ -398,9 +419,11 @@ void Goodie::doSomethingDiff()
 
 void Goodie::collisionReaction()
 {
+	// Increase the player's score.
     getWorld()->increaseScore(GOODIESCORE);
     setDead();
     getWorld()->playSound(SOUND_GOODIE);
+    // Give the player bonus.
     bonus();
 }
 
@@ -423,6 +446,7 @@ Repair::Repair(StudentWorld* sw, double startX, double startY)
 void Repair::bonus()
 {
     double health = getWorld()->getPlayer()->getHitpoints();
+    // If adding hitpoints will cause health to exceed 100%, set it to 100%.
     if (health + 10.0 > FULLHITPOINT)
         getWorld()->getPlayer()->setHitpoints(50.0);
     else
@@ -448,20 +472,24 @@ void TorpedoGoodie::bonus()
 Alien::Alien(StudentWorld* sw, int imageID, double startX, double startY, int dir, double size, int depth)
 :Actor(sw, imageID, startX, startY, dir, size, depth), m_speed(2.0), m_length(VIEW_WIDTH)
 {
+	// Random travel directions.
     int randDir = randInt(1, 3);
     setTravelDir(randDir);
+    // Random flight lengths.
     int randL = randInt(1, 32);
     setLength(randL);
+    // Enemy label
     setLabel(ENEMY);
 }
 
 void Alien::doSomethingDiff()
 {
+	// Offscreen
     if (getX() < 0)
         setDead();
     else
     {
-        checkCollision(getDamagePoints(), getScore());
+        checkCollision(getDamagePoints(), getScore());  // How much damage will the player suffer or how many scores will the player get
         if (!dead())
         {
             double nbX = getWorld()->getPlayer()->getX();
@@ -475,7 +503,10 @@ void Alien::doSomethingDiff()
             if (getX() > nbX && getY() <= nbY + 4 && getY() >= nbY - 4)
                 fire();
             
+            // Continue moving
             move();
+
+            // Check again
             checkCollision(getDamagePoints(), getScore());
         }
     }
@@ -486,12 +517,17 @@ void Alien::checkCollision(int damage, int score)
     double dp = 0.0;
     if (collideNB())
     {
+    	// Player suffers damage.
         getWorld()->getPlayer()->sufferDamage(damage);
+        // Alien will die.
         fatalCollision(score);
+        // Possibly drop goodies.
         dropGoodie();
     }
     else if (getWorld()->collide(this, dp))
     {
+    	// Since we check collision twice during a tick,
+    	// each time the alien will suffer half of the damage caused by player projectiles.
         sufferDamage(dp/2);
         if (dead())
         {
@@ -507,14 +543,17 @@ void Alien::fatalCollision(int score)
 {
     getWorld()->increaseScore(score);
     setDead();
+    // Increment destroyed aliens when an alien is killed.
     getWorld()->addDestroyed();
     getWorld()->playSound(SOUND_DEATH);
+    // Add an explosion
     Explosion* ex = new Explosion(getWorld(), getX(), getY());
     getWorld()->animate(ex);
 }
 
 void Alien::changeDirection()
 {
+	// Alien reaches top or bottom.
     if (getY() >= VIEW_WIDTH-1)
     {
         setTravelDir(DOWNLEFT);
@@ -523,11 +562,14 @@ void Alien::changeDirection()
     {
         setTravelDir(UPLEFT);
     }
+    // Differentiated behaviors.
     changeDirDiff();
 }
 
 void Alien::changeDirDiff()
 {
+	// Default differentiated behaviors.
+	// (For smallgons and smoregons)
     if (getLength() <= 0)
     {
         int randdir = randInt(1, 3);
@@ -544,12 +586,15 @@ void Alien::changeDirDiff()
                 break;
         }
     }
+    // Random flight length.
+    // (For smallgons and smoregons)
     int randl = randInt(1, 32);
     setLength(randl);
 }
 
 void Alien::move()
 {
+	// Possibly move in three directions.
     double n = getSpeed();
     switch (getTravelDir()) {
         case UPLEFT:
@@ -563,11 +608,14 @@ void Alien::move()
         default:
             break;
     }
+    // Differentiated behaviors.
     moveDiff();
 }
 
 void Alien::moveDiff()
 {
+	// Differentiated behaviors.
+	// (For smallgons and smoregons)
     setLength(getLength()-1);
 }
 
@@ -630,6 +678,7 @@ Smallgon::Smallgon(StudentWorld* sw, double startX, double startY)
 
 void Smallgon::fire()
 {
+	// Fire a turnip.
     int chance = randInt(1, (20 / getWorld()->getLevel() + 5));
     if (chance == 1)
     {
@@ -667,6 +716,7 @@ Smoregon::Smoregon(StudentWorld* sw, double startX, double startY)
 
 void Smoregon::fire()
 {
+	// Fire a turnip.
     int chance = randInt(1, (20 / getWorld()->getLevel() + 5));
     if (chance == 1)
     {
@@ -674,7 +724,8 @@ void Smoregon::fire()
         getWorld()->animate(t);
         getWorld()->playSound(SOUND_ALIEN_SHOOT);
     }
-    if (chance == 2)
+    // Or accelerate.
+    else if (chance == 2)
     {
         setTravelDir(DUELEFT);
         setLength(VIEW_WIDTH);
@@ -687,12 +738,14 @@ void Smoregon::dropGoodie()
     int chance = randInt(1, 3);
     if (chance == 1)
     {
+    	// Drop a repair goodie.
         int goodieType = randInt(1, 2);
         if (goodieType == 1)
         {
             Repair* r = new Repair(getWorld(), getX(), getY());
             getWorld()->animate(r);
         }
+        // ...Or a torpedo goodie.
         else
         {
             TorpedoGoodie* t = new TorpedoGoodie(getWorld(), getX(), getY());
@@ -725,6 +778,7 @@ Snagglegon::Snagglegon(StudentWorld* sw, double startX, double startY)
 
 void Snagglegon::changeDirDiff()
 {
+	// Snagglegon only moves in two directions.
     int randdir = randInt(1, 2);
     double n = getSpeed();
     switch(randdir)
@@ -749,6 +803,7 @@ void Snagglegon::moveDiff()
 
 void Snagglegon::fire()
 {
+	// Fire a torpedo.
     int chance = randInt(1, (15 / getWorld()->getLevel() + 10));
     if (chance == 1)
         {
@@ -761,6 +816,7 @@ void Snagglegon::fire()
 
 void Snagglegon::dropGoodie()
 {
+	// Drop Extralife goodie.
     int chance = randInt(1, 6);
     if (chance == 1)
     {

@@ -4,8 +4,8 @@
 #include "GraphObject.h"
 #include <iostream>
 #include <cmath>
-// Students:  Add code to this file, Actor.cpp, StudentWorld.h, and StudentWorld.cpp
 
+// Constants
 const int UPLEFT = 1;
 const int DOWNLEFT = 2;
 const int DUELEFT = 3;
@@ -28,8 +28,9 @@ const int GOODIESCORE = 100;
 
 const double SMALLSPEED = 2.0;
 const double SMORESPEED = 2.0;
-const double SNAGGLESPEED = 0.75;
+const double SNAGGLESPEED = 1.75;
 
+// Helper function.
 double dist(double x1, double y1, double x2, double y2);
 
 class StudentWorld;
@@ -49,22 +50,24 @@ public:
     virtual int getDamagePoints() const;
     double getHitpoints() const;
     int getLabel() const;
-    StudentWorld* getWorld() const;
     void setHitpoints(double hp);
     void setDead();
     void setLabel(int n);
     bool dead() const;
     bool offScreen(double x, double y) const;
     bool collideNB() const;
+    StudentWorld* getWorld() const;
     
     // Destructor
     virtual ~Actor();
     
 private:
+    // Label actors as player and enemy.
     int m_label;
     double m_hitpoints;
-    virtual void doSomethingDiff() = 0;
     StudentWorld* m_world;
+    // Derived classes perform differentiated actions.
+    virtual void doSomethingDiff() = 0;
 };
 
 class NachenBlaster : public Actor
@@ -227,10 +230,10 @@ private:
     virtual void checkCollision(int damage, int score);
     virtual void fatalCollision(int score);
     virtual void changeDirection();
-    virtual void changeDirDiff();
+    virtual void changeDirDiff();   // Default version of a differentiated function
     virtual void move();
-    virtual void moveDiff();
-    virtual void dropGoodie() = 0;   // for smoregon and snagglegon
+    virtual void moveDiff();   // Default version of a differentiated function
+    virtual void dropGoodie() = 0;   // For smoregon and snagglegon
     virtual void fire() = 0;
     virtual int getDamagePoints() const = 0;
     virtual int getScore() const = 0;
@@ -240,9 +243,7 @@ private:
     int m_travelDir;
 };
 
-
-
-
+//////////////////////////Smallgon////////////////////////////////
 class Smallgon : public Alien
 {
 public:
@@ -255,7 +256,7 @@ private:
 };
 
 
-
+//////////////////////////Smoregon//////////////////////////////////
 class Smoregon : public Alien
 {
 public:
@@ -268,7 +269,7 @@ private:
 };
 
 
-
+//////////////////////////Snagglegon////////////////////////////////
 class Snagglegon : public Alien
 {
 public:

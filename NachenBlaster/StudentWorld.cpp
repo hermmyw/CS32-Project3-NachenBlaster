@@ -24,6 +24,7 @@ int StudentWorld::init()
     // Create 30 stars and push them into the actor collection.
     for (int i = 0; i < 30; i++)
     {
+        // Random locations.
         double randomX = randInt(0, VIEW_WIDTH-1);
         double randomY = randInt(0, VIEW_HEIGHT-1);
         Star* s = new Star(this, randomX, randomY);
@@ -95,8 +96,10 @@ int StudentWorld::move()
 
 void StudentWorld::cleanUp()
 {
+    // Only use cleanUp() when the actor collection is not empty.
     if (!m_actors.empty())
     {
+        // Push the player into the collection.
         m_actors.push_back(m_player);
         vector<Actor*>::iterator p = m_actors.begin();
         while (p != m_actors.end())
@@ -110,6 +113,7 @@ void StudentWorld::cleanUp()
 
 void StudentWorld::animate(Actor* obj)
 {
+    // Activate the actor.
     obj->doSomething();
     m_actors.push_back(obj);
 }
@@ -133,7 +137,7 @@ bool StudentWorld::collide(Actor* obj, double& damage)
             // label1 = enemy or enemy proj, label2 = player proj
             // let obj be enemy...and check for collision w/ player proj
             {
-                
+                // If actor[i] is a player proj, set it to dead.
                 if (m_actors.at(i)->getLabel() == PLAYER)
                 {
                     damage = m_actors.at(i)->getDamagePoints();
@@ -153,6 +157,7 @@ void StudentWorld::addDestroyed()
 
 int StudentWorld::getRemained()
 {
+    // The aliens remained to destroy to complete a level.
     return m_total - m_destroyed;
 }
 
@@ -176,6 +181,7 @@ void StudentWorld::insertStars()
     int chanceStar = randInt(1, 15);
     if (chanceStar == 1)
     {
+        // Random Y coordinate.
         double randomY = randInt(0, VIEW_HEIGHT-1);
         Star* s = new Star(this, VIEW_HEIGHT-1, randomY);
         m_actors.push_back(s);
@@ -206,8 +212,9 @@ void StudentWorld::insertAliens()
             a = new Snagglegon(this, VIEW_WIDTH-1, randomY);
         
         // Add the new alien ship to the actor collection.
-        // Increment the number of alien ships.
         m_actors.push_back(a);
+
+        // Increment the number of alien ships.
         m_nAlien++;
     }
 }
