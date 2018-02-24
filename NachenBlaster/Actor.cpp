@@ -30,7 +30,7 @@ void Actor::doSomething()
 
 void Actor::sufferDamage(double d)
 {
-    m_hitpoints -= d;
+    setDead();
 }
 
 bool Actor::alienShip() const

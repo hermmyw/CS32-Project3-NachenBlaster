@@ -43,8 +43,10 @@ class Actor : public GraphObject
 public:
     // Constructor
     Actor(StudentWorld* sw, int imageID, double startX, double startY, int dir = 0, double size = 1.0, int depth = 0);
-    
-    virtual void doSomething();    // check alive
+    // This function only checks if an actor is alive.
+    void doSomething();    
+    // Derived classes perform differentiated actions.
+    virtual void doSomethingDiff() = 0;
     virtual void sufferDamage(double d);
     virtual bool alienShip() const;
     virtual int getDamagePoints() const;
@@ -66,8 +68,6 @@ private:
     int m_label;
     double m_hitpoints;
     StudentWorld* m_world;
-    // Derived classes perform differentiated actions.
-    virtual void doSomethingDiff() = 0;
 };
 
 class NachenBlaster : public Actor
@@ -177,7 +177,7 @@ public:
     Goodie(StudentWorld* sw, int imageID, double startX, double startY);
 private:
     virtual void doSomethingDiff();
-    virtual void collisionReaction();
+    void collisionReaction();
     virtual void bonus() = 0;
 };
 
@@ -229,9 +229,9 @@ private:
     virtual void doSomethingDiff();
     virtual void checkCollision(int damage, int score);
     virtual void fatalCollision(int score);
-    virtual void changeDirection();
+    void changeDirection();
     virtual void changeDirDiff();   // Default version of a differentiated function
-    virtual void move();
+    void move();
     virtual void moveDiff();   // Default version of a differentiated function
     virtual void dropGoodie() = 0;   // For smoregon and snagglegon
     virtual void fire() = 0;
