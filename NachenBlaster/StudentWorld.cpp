@@ -38,9 +38,15 @@ int StudentWorld::init()
     m_nAlien = 0;
     m_destroyed = 0;
     m_total = 6 + (4 * getLevel());
-    m_remained = m_total - m_destroyed;
+    m_remained = m_total;
     
     return GWSTATUS_CONTINUE_GAME;
+}
+
+void StudentWorld::addDestroyed()
+{
+    m_destroyed++;
+    m_remained--;
 }
 
 int StudentWorld::move()
@@ -143,7 +149,7 @@ void StudentWorld::animate(Actor* obj)
     m_actors.push_back(obj);
 }
 
-bool StudentWorld::collide(Actor* obj)
+bool StudentWorld::collide(Actor* obj, double& damage)
 {
     for (int i = 0; i < m_actors.size(); i++)
     {
@@ -158,14 +164,22 @@ bool StudentWorld::collide(Actor* obj)
             int r2 = obj->getRadius();
             int label2 = obj->getLabel();
             if (label1 != NEUTRAL && label2 != NEUTRAL && label1 != label2 && dist(x1, y1, x2, y2) < 0.75 * (r1 + r2))
+            // label1 = player proj, label2 = enemy or enemy proj
+            // label1 = enemy or enemy proj, label2 = player proj
+            // let obj be enemy...and check for collision w/ player proj
             {
-                if (label2 == ENEMY)  // obj is an alien, m_actors[i] is a player proj
+//                if (label2 == ENEMY)  // obj is an alien, m_actors[i] is a player proj
+//                {
+//                    obj->sufferDamage(2);
+//                    m_actors.at(i)->setDead();
+//                }
+//                else if (label1 == ENEMY)  // obj is a player proj, m_actors[i] is an alien
+//                    m_actors.at(i)->sufferDamage(2);
+                if (m_actors.at(i)->getLabel() == PLAYER)
                 {
-                    obj->sufferDamage(2);
+                    damage = m_actors.at(i)->getDamagePoints();
                     m_actors.at(i)->setDead();
                 }
-                else if (label1 == ENEMY)  // obj is a player proj, m_actors[i] is an alien
-                    m_actors.at(i)->sufferDamage(2);
                 return true;
             }
         }

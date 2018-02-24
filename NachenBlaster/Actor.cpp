@@ -115,53 +115,53 @@ NachenBlaster::NachenBlaster(StudentWorld* sw)
 
 void NachenBlaster::doSomethingDiff()
 {
-        int ch;
-        if (getWorld()->getKey(ch))
+    int ch;
+    if (getWorld()->getKey(ch))
+    {
+        switch(ch)
         {
-            switch(ch)
-            {
-                case KEY_PRESS_SPACE:
-                    if (m_nCabbage >= 5)
+            case KEY_PRESS_SPACE:
+                if (m_nCabbage >= 5)
+                {
+                    for (int i = 0; i < 5; i++)
                     {
-                        for (int i = 0; i < 5; i++)
-                        {
-                            Cabbage* c = new Cabbage(getWorld(), getX()+12, getY());
-                            getWorld()->animate(c);
-                            getWorld()->playSound(SOUND_PLAYER_SHOOT);
-                        }
-                        m_nCabbage -= 5;
+                        Cabbage* c = new Cabbage(getWorld(), getX()+12, getY());
+                        getWorld()->animate(c);
+                        getWorld()->playSound(SOUND_PLAYER_SHOOT);
                     }
-                    break;
-                case KEY_PRESS_TAB:
-                    if (m_nTorpedo > 0)
-                    {
-                        Torpedo* t = new Torpedo(getWorld(), getX()+12, getY(), 0);
-                        t->setLabel(PLAYER);
-                        getWorld()->animate(t);
-                        getWorld()->playSound(SOUND_TORPEDO);
-                        m_nTorpedo--;
-                    }
-                    break;
-                case KEY_PRESS_UP:
-                    if (!offScreen(getX(), getY()+6))
-                        moveTo(getX(), getY()+6);
-                    break;
-                case KEY_PRESS_DOWN:
-                    if (!offScreen(getX(), getY()-6))
-                        moveTo(getX(), getY()-6);
-                    break;
-                case KEY_PRESS_LEFT:
-                    if (!offScreen(getX()-6, getY()))
-                        moveTo(getX()-6, getY());
-                    break;
-                case KEY_PRESS_RIGHT:
-                    if (!offScreen(getX()+6, getY()))
-                        moveTo(getX()+6, getY());
-                    break;
-            }
+                    m_nCabbage -= 5;
+                }
+                break;
+            case KEY_PRESS_TAB:
+                if (m_nTorpedo > 0)
+                {
+                    Torpedo* t = new Torpedo(getWorld(), getX()+12, getY(), 0);
+                    t->setLabel(PLAYER);
+                    getWorld()->animate(t);
+                    getWorld()->playSound(SOUND_TORPEDO);
+                    m_nTorpedo--;
+                }
+                break;
+            case KEY_PRESS_UP:
+                if (!offScreen(getX(), getY()+6))
+                    moveTo(getX(), getY()+6);
+                break;
+            case KEY_PRESS_DOWN:
+                if (!offScreen(getX(), getY()-6))
+                    moveTo(getX(), getY()-6);
+                break;
+            case KEY_PRESS_LEFT:
+                if (!offScreen(getX()-6, getY()))
+                    moveTo(getX()-6, getY());
+                break;
+            case KEY_PRESS_RIGHT:
+                if (!offScreen(getX()+6, getY()))
+                    moveTo(getX()+6, getY());
+                break;
         }
-        if (m_nCabbage < 30)
-            m_nCabbage++;
+    }
+    if (m_nCabbage < 30)
+        m_nCabbage++;
 }
 
 void NachenBlaster::sufferDamage(int d)
@@ -270,7 +270,7 @@ void Alien::changeDir()
 void Alien::fire()
 {
     fireDiff();
-    getWorld()->playSound(SOUND_ALIEN_SHOOT);
+    //getWorld()->playSound(SOUND_ALIEN_SHOOT);
 }
 
 void Alien::move()
@@ -325,6 +325,7 @@ void Alien::fatalCollision(int score)
 {
     getWorld()->increaseScore(score);
     setDead();
+    getWorld()->addDestroyed();
     getWorld()->playSound(SOUND_DEATH);
     Explosion* ex = new Explosion(getWorld(), getX(), getY());
     getWorld()->animate(ex);
@@ -368,9 +369,13 @@ void Smallgon::changeDirDiff()
 
 void Smallgon::fireDiff()
 {
-    Turnip* t = new Turnip(getWorld(), getX()-14, getY());
-    getWorld()->animate(t);
-    getWorld()->playSound(SOUND_ALIEN_SHOOT);
+    int chance = randInt(1, (20 / getWorld()->getLevel() + 5));
+    if (chance == 1)
+    {
+        Turnip* t = new Turnip(getWorld(), getX()-14, getY());
+        getWorld()->animate(t);
+        getWorld()->playSound(SOUND_ALIEN_SHOOT);
+    }
 }
 
 void Smallgon::moveDiff()
@@ -385,19 +390,21 @@ void Smallgon::dropGoodie()
 
 void Smallgon::checkCollision()
 {
+    double damage = 0.0;
     if (collideNB())
     {
         getWorld()->getPlayer()->sufferDamage(5);
         fatalCollision(250);
     }
-    /*
-    else if (getWorld()->collide(this))
+    
+    else if (getWorld()->collide(this, damage))
     {
+        sufferDamage(damage);
         if (die())
             fatalCollision(250);
         else
             getWorld()->playSound(SOUND_BLAST);
-    }*/
+    }
 }
 
 //////////////////////////Smoregon//////////////////////////////////
@@ -436,9 +443,19 @@ void Smoregon::changeDirDiff()
 
 void Smoregon::fireDiff()
 {
-    Turnip* t = new Turnip(getWorld(), getX()-14, getY());
-    getWorld()->animate(t);
-    getWorld()->playSound(SOUND_ALIEN_SHOOT);
+    int chance = randInt(1, (20 / getWorld()->getLevel() + 5));
+    if (chance == 1)
+    {
+        Turnip* t = new Turnip(getWorld(), getX()-14, getY());
+        getWorld()->animate(t);
+        getWorld()->playSound(SOUND_ALIEN_SHOOT);
+    }
+    if (chance == 2)
+    {
+        setTravelDir(DUELEFT);
+        setLength(VIEW_WIDTH);
+        setSpeed(5.0);
+    }
 }
 
 void Smoregon::moveDiff()
@@ -448,19 +465,35 @@ void Smoregon::moveDiff()
 
 void Smoregon::dropGoodie()
 {
-    return;
+    int chance = randInt(1, 3);
+    if (chance == 1)
+    {
+        int goodieType = randInt(1, 2);
+        if (goodieType == 1)
+        {
+            Repair* r = new Repair(getWorld(), getX(), getY());
+            getWorld()->animate(r);
+        }
+        else
+        {
+            TorpedoGoodie* t = new TorpedoGoodie(getWorld(), getX(), getY());
+            getWorld()->animate(t);
+        }
+    }
 }
 
 void Smoregon::checkCollision()
 {
+    double damage = 0.0;
     if (collideNB())
     {
         getWorld()->getPlayer()->sufferDamage(5);
         fatalCollision(250);
         dropGoodie();
     }
-    else if (getWorld()->collide(this))
+    else if (getWorld()->collide(this, damage))
     {
+        sufferDamage(damage);
         if (die())
         {
             fatalCollision(250);
@@ -500,10 +533,14 @@ void Snagglegon::changeDirDiff()
 
 void Snagglegon::fireDiff()
 {
-    Torpedo* t = new Torpedo(getWorld(), getX()-14, getY(), 180);
-    t->setLabel(ENEMY);
-    getWorld()->animate(t);
-    getWorld()->playSound(SOUND_TORPEDO);
+    int chance = randInt(1, (15 / getWorld()->getLevel() + 10));
+    if (chance == 1)
+        {
+        Torpedo* t = new Torpedo(getWorld(), getX()-14, getY(), 180);
+        t->setLabel(NEUTRAL);
+        getWorld()->animate(t);
+        getWorld()->playSound(SOUND_TORPEDO);
+    }
 }
 
 void Snagglegon::moveDiff()
@@ -513,19 +550,26 @@ void Snagglegon::moveDiff()
 
 void Snagglegon::dropGoodie()
 {
-    return;
+    int chance = randInt(1, 6);
+    if (chance == 1)
+    {
+        Extralife* e = new Extralife(getWorld(), getX(), getY());
+        getWorld()->animate(e);
+    }
 }
 
 void Snagglegon::checkCollision()
 {
+    double damage = 0.0;
     if (collideNB())
     {
         getWorld()->getPlayer()->sufferDamage(15);
         fatalCollision(1000);
         dropGoodie();
     }
-    else if (getWorld()->collide(this))
+    else if (getWorld()->collide(this, damage))
     {
+        sufferDamage(damage);
         if (die())
         {
             fatalCollision(1000);
@@ -606,7 +650,8 @@ void Cabbage::doSomethingDiff()
 
 void Cabbage::checkCollision()
 {
-    if (getWorld()->collide(this))
+    double damage = 0.0;
+    if (getWorld()->collide(this, damage))
     {
         setDead();
     }
@@ -621,7 +666,7 @@ int Cabbage::getDamagePoints()
 Turnip::Turnip(StudentWorld* sw, int x, int y)
 :Projectile(sw, IID_TURNIP, x, y, 0, 0.5, 1)
 {
-    setLabel(ENEMY);
+    setLabel(NEUTRAL);
 }
 
 void Turnip::doSomethingDiff()
@@ -666,7 +711,7 @@ void Torpedo::doSomethingDiff()
     {
         if (getLabel() == PLAYER)
             moveTo(getX()+6, getY());
-        if (getLabel() == ENEMY)
+        else
             moveTo(getX()-6, getY());
     }
     checkCollision();
@@ -674,7 +719,8 @@ void Torpedo::doSomethingDiff()
 
 void Torpedo::checkCollision()
 {
-    if (getWorld()->collide(this))
+    double damage = 0.0;
+    if (getWorld()->collide(this, damage))
     {
         setDead();
     }
@@ -723,16 +769,21 @@ Goodie::Goodie(StudentWorld* sw, int imageID, int x, int y)
 
 void Goodie::doSomethingDiff()
 {
-    if (collideNB())
+    if (getY() < 0 || getY() >= VIEW_HEIGHT)
+        setDead();
+    else
     {
-        collisionReaction();
-        return;
-    }
-    moveTo(getX()-0.75, getY()-0.75);
-    if (collideNB())
-    {
-        collisionReaction();
-        return;
+        if (collideNB())
+        {
+            collisionReaction();
+            return;
+        }
+        moveTo(getX()-0.75, getY()-0.75);
+        if (collideNB())
+        {
+            collisionReaction();
+            return;
+        }
     }
 }
 
@@ -751,7 +802,8 @@ Extralife::Extralife(StudentWorld* sw, int startX, int startY)
 
 void Extralife::bonus()
 {
-    getWorld()->incLives();
+    if (getWorld()->getLives() < 3)
+        getWorld()->incLives();
 }
 ////////////////////////////////   Repair    ////////////////////////////////
 Repair::Repair(StudentWorld* sw, int startX, int startY)
