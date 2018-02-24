@@ -23,7 +23,7 @@ public:
     
     // Virtual functions
     virtual void doSomething();    // check alive
-    virtual void sufferDamage(int d);
+    virtual void sufferDamage(double d);
     virtual bool alienShip();
     virtual int getDamagePoints();
     
@@ -38,7 +38,7 @@ public:
     void setLabel(int n);
     
     // Check Status
-    bool die();
+    bool dead();
     bool offScreen(int x, int y);
     bool collideNB();
     
@@ -57,7 +57,7 @@ class NachenBlaster : public Actor
 {
 public:
     NachenBlaster(StudentWorld* sw);
-    virtual void sufferDamage(int d);
+    virtual void sufferDamage(double d);
     int getCabbage();
     int getTorpedo();
     void addTorpedo(int n);
@@ -90,7 +90,7 @@ class Alien : public Actor
 public:
     Alien(StudentWorld* sw, int imageID, double startX, double startY, int dir = 0, double size = 1.5, int depth = 1);
     virtual bool alienShip();
-    virtual void sufferDamage(int d);
+    virtual void sufferDamage(double d);
     virtual void changeDir();
     virtual void fire();
     virtual void move();
@@ -169,7 +169,7 @@ public:
     Projectile(StudentWorld* sw, int imageID, double startX, double startY, int dir = 0, double size = 1.0, int depth = 0);
     virtual void checkCollision() = 0;
     virtual int getDamagePoints() = 0;
-    virtual void sufferDamage(int d);
+    virtual void sufferDamage(double d);
     virtual void doSomethingDiff();
     virtual ~Projectile();
 private:

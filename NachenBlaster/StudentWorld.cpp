@@ -55,7 +55,7 @@ int StudentWorld::move()
     // Notice that the return value GWSTATUS_PLAYER_DIED will cause our framework to end the current level.
     for (int i = 0; i < m_actors.size(); i++)
     {
-        if (!m_actors.at(i)->die())
+        if (!m_actors.at(i)->dead())
             m_actors.at(i)->doSomething();
         else
         // free dead objects
@@ -69,7 +69,7 @@ int StudentWorld::move()
         }
     }
     
-    if (m_player->die())
+    if (m_player->dead())
     {
         decLives();
         return GWSTATUS_PLAYER_DIED;

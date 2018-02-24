@@ -8,14 +8,14 @@
 /////////////////////////////   Actor    ////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
 Actor::Actor(StudentWorld* sw, int imageID, double startX, double startY, int dir, double size, int depth)
-:GraphObject(imageID, startX, startY, dir, size, depth), m_hitpoints(50)
+:GraphObject(imageID, startX, startY, dir, size, depth), m_hitpoints(50.0)
 {
     m_world = sw;
 }
 
 void Actor::doSomething()
 {
-    if (die())
+    if (dead())
         return;
     else
         doSomethingDiff();
@@ -36,14 +36,14 @@ int Actor::getDamagePoints()
     return 0;
 }
 
-void Actor::sufferDamage(int d)
+void Actor::sufferDamage(double d)
 {
     m_hitpoints -= d;
 }
 
-bool Actor::die()
+bool Actor::dead()
 {
-    return m_hitpoints == 0;
+    return m_hitpoints <= 0;
 }
 
 void Actor::setHitpoints(double hp)
@@ -53,7 +53,7 @@ void Actor::setHitpoints(double hp)
 
 void Actor::setDead()
 {
-    m_hitpoints = 0;
+    m_hitpoints = 0.0;
 }
 
 int Actor::getLabel()
@@ -109,7 +109,7 @@ Actor::~Actor()
 NachenBlaster::NachenBlaster(StudentWorld* sw)
 :Actor(sw, IID_NACHENBLASTER, 0, 128), m_nCabbage(30), m_nTorpedo(0)
 {
-    setHitpoints(50);
+    setHitpoints(50.0);
     setLabel(PLAYER);
 }
 
@@ -164,7 +164,7 @@ void NachenBlaster::doSomethingDiff()
         m_nCabbage++;
 }
 
-void NachenBlaster::sufferDamage(int d)
+void NachenBlaster::sufferDamage(double d)
 {
     setHitpoints(getHitpoints()-d);
     if (getHitpoints() <= 0)
@@ -217,7 +217,7 @@ void Alien::dropGoodie()
     return;
 }
 
-void Alien::sufferDamage(int d)
+void Alien::sufferDamage(double d)
 {
     setHitpoints(getHitpoints()-d);
     
@@ -251,7 +251,7 @@ void Alien::doSomethingDiff()
     
     move();
     
-    if (!die())
+    if (!dead())
         checkCollision();
 }
 
@@ -342,7 +342,7 @@ Smallgon::Smallgon(StudentWorld* sw, double startX, double startY)
 :Alien(sw, IID_SMALLGON, startX, startY)
 {
     int n = getWorld()->getLevel();
-    int initHP = 5 * (1 + (n-1) * 0.1);
+    double initHP = 5 * (1 + (n-1) * 0.1);
     setHitpoints(initHP);
 }
 
@@ -394,14 +394,14 @@ void Smallgon::checkCollision()
     double damage = 0.0;
     if (collideNB())
     {
-        getWorld()->getPlayer()->sufferDamage(5);
+        getWorld()->getPlayer()->sufferDamage(5.0);
         fatalCollision(250);
     }
     
     else if (getWorld()->collide(this, damage))
     {
         sufferDamage(damage);
-        if (die())
+        if (dead())
             fatalCollision(250);
         else
             getWorld()->playSound(SOUND_BLAST);
@@ -413,7 +413,8 @@ Smoregon::Smoregon(StudentWorld* sw, double startX, double startY)
 :Alien(sw, IID_SMOREGON, startX, startY)
 {
     int n = getWorld()->getLevel();
-    setHitpoints(5 * (1 + (n-1) * 0.1));
+    double initHP = 5 * (1 + (n-1) * 0.1);
+    setHitpoints(initHP);
 }
 
 void Smoregon::changeDirDiff()
@@ -488,14 +489,14 @@ void Smoregon::checkCollision()
     double damage = 0.0;
     if (collideNB())
     {
-        getWorld()->getPlayer()->sufferDamage(5);
+        getWorld()->getPlayer()->sufferDamage(5.0);
         fatalCollision(250);
         dropGoodie();
     }
     else if (getWorld()->collide(this, damage))
     {
         sufferDamage(damage);
-        if (die())
+        if (dead())
         {
             fatalCollision(250);
             dropGoodie();
@@ -510,7 +511,8 @@ Snagglegon::Snagglegon(StudentWorld* sw, double startX, double startY)
 :Alien(sw, IID_SNAGGLEGON, startX, startY)
 {
     int n = getWorld()->getLevel();
-    setHitpoints(10 * (1 + (n-1) * 0.1));
+    double initHP = 10 * (1 + (n-1) * 0.1);
+    setHitpoints(initHP);
     setTravelDir(DOWNLEFT);
     setSpeed(1.75);
 }
@@ -564,14 +566,14 @@ void Snagglegon::checkCollision()
     double damage = 0.0;
     if (collideNB())
     {
-        getWorld()->getPlayer()->sufferDamage(15);
+        getWorld()->getPlayer()->sufferDamage(15.0);
         fatalCollision(1000);
         dropGoodie();
     }
     else if (getWorld()->collide(this, damage))
     {
         sufferDamage(damage);
-        if (die())
+        if (dead())
         {
             fatalCollision(1000);
             dropGoodie();
@@ -620,7 +622,7 @@ void Projectile::doSomethingDiff()
         setDead();
 }
 
-void Projectile::sufferDamage(int d)
+void Projectile::sufferDamage(double d)
 {
     return;
 }
@@ -642,7 +644,7 @@ void Cabbage::doSomethingDiff()
 {
     Projectile::doSomethingDiff();
     checkCollision();
-    if (!die())
+    if (!dead())
     {
         moveTo(getX()+8, getY());
         setDirection(getDirection()+20);
@@ -675,7 +677,7 @@ void Turnip::doSomethingDiff()
 {
     Projectile::doSomethingDiff();
     checkCollision();
-    if (!die())
+    if (!dead())
     {
         moveTo(getX()-6, getY());
         setDirection(getDirection()+20);
@@ -688,7 +690,7 @@ void Turnip::checkCollision()
     if (collideNB())
     {
         setDead();
-        getWorld()->getPlayer()->sufferDamage(2);
+        getWorld()->getPlayer()->sufferDamage(2.0);
     }
 }
 
@@ -709,7 +711,7 @@ void Torpedo::doSomethingDiff()
 {
     Projectile::doSomethingDiff();
     checkCollision();
-    if (!die())
+    if (!dead())
     {
         if (getLabel() == PLAYER)
             moveTo(getX()+6, getY());
@@ -814,11 +816,11 @@ Repair::Repair(StudentWorld* sw, int startX, int startY)
 
 void Repair::bonus()
 {
-    int health = getWorld()->getPlayer()->getHitpoints();
-    if (health + 10 >= 50)
-        getWorld()->getPlayer()->setHitpoints(50);
+    double health = getWorld()->getPlayer()->getHitpoints();
+    if (health + 10.0 >= 50.0)
+        getWorld()->getPlayer()->setHitpoints(50.0);
     else
-        getWorld()->getPlayer()->setHitpoints(getWorld()->getPlayer()->getHitpoints() + 10);
+        getWorld()->getPlayer()->setHitpoints(getWorld()->getPlayer()->getHitpoints() + 10.0);
 }
 ////////////////////////////////TorpedoGoodie////////////////////////////////
 TorpedoGoodie::TorpedoGoodie(StudentWorld* sw, int startX, int startY)
