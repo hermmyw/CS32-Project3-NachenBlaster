@@ -176,10 +176,14 @@ bool StudentWorld::collide(Actor* obj, double& damage)
 //                else if (label1 == ENEMY)  // obj is a player proj, m_actors[i] is an alien
 //                    m_actors.at(i)->sufferDamage(2);
                 if (m_actors.at(i)->getLabel() == PLAYER)
+<<<<<<< HEAD
                 {
                     damage = m_actors.at(i)->getDamagePoints();
                     m_actors.at(i)->setDead();
                 }
+=======
+                    damage = m_actors.at(i)->getDamagePoints();
+>>>>>>> eafea760b0fa5e21a960de142b591b2f91ddc529
                 return true;
             }
         }

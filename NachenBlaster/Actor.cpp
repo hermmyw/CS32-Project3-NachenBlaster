@@ -537,7 +537,11 @@ void Snagglegon::fireDiff()
     if (chance == 1)
         {
         Torpedo* t = new Torpedo(getWorld(), getX()-14, getY(), 180);
+<<<<<<< HEAD
         t->setLabel(NEUTRAL);
+=======
+        t->setLabel(ENEMY);
+>>>>>>> eafea760b0fa5e21a960de142b591b2f91ddc529
         getWorld()->animate(t);
         getWorld()->playSound(SOUND_TORPEDO);
     }
