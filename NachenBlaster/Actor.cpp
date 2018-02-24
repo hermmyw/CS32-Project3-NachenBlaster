@@ -3,12 +3,17 @@
 
 // Students:  Add code to this file, Actor.h, StudentWorld.h, and StudentWorld.cpp
 
+/////////////////////   Helper Function  /////////////////////
+double dist(double x1, double y1, double x2, double y2)
+{
+    return sqrt(pow((x2-x1), 2) + pow((y2-y1), 2));
+}
 
 /////////////////////////////////////////////////////////////////////////
 /////////////////////////////   Actor    ////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
 Actor::Actor(StudentWorld* sw, int imageID, double startX, double startY, int dir, double size, int depth)
-:GraphObject(imageID, startX, startY, dir, size, depth), m_hitpoints(50.0)
+:GraphObject(imageID, startX, startY, dir, size, depth), m_hitpoints(FULLHITPOINT)
 {
     m_world = sw;
 }
@@ -21,30 +26,36 @@ void Actor::doSomething()
         doSomethingDiff();
 }
 
-bool Actor::alienShip()
-{
-    return false;
-}
-
-double Actor::dist(int x1, int y1, int x2, int y2)
-{
-    return sqrt(pow((x2-x1), 2) + pow((y2-y1), 2));
-}
-
-int Actor::getDamagePoints()
-{
-    return 0;
-}
-
 void Actor::sufferDamage(double d)
 {
     m_hitpoints -= d;
 }
 
-bool Actor::dead()
+bool Actor::alienShip() const
 {
-    return m_hitpoints <= 0;
+    return false;
 }
+
+int Actor::getDamagePoints() const
+{
+    return 0;
+}
+
+double Actor::getHitpoints() const
+{
+    return m_hitpoints;
+}
+
+int Actor::getLabel() const
+{
+    return m_label;
+}
+
+StudentWorld* Actor::getWorld() const
+{
+    return m_world;
+}
+
 
 void Actor::setHitpoints(double hp)
 {
@@ -56,49 +67,41 @@ void Actor::setDead()
     m_hitpoints = 0.0;
 }
 
-int Actor::getLabel()
-{
-    return m_label;
-}
-
 void Actor::setLabel(int n)
 {
     m_label = n;
 }
 
-double Actor::getHitpoints()
+bool Actor::dead() const
 {
-    return m_hitpoints;
+    return m_hitpoints <= 0;
 }
 
-bool Actor::offScreen(int x, int y)
+bool Actor::offScreen(double x, double y) const
 {
-    if (x < 0 || x > 255)
+    if (x < 0 || x > VIEW_WIDTH-1)
         return true;
-    if (y < 0 || y > 255)
+    else if (y < 0 || y > VIEW_HEIGHT-1)
         return true;
-    return false;
+    else
+        return false;
 }
 
-bool Actor::collideNB()
+// Check if an actor collides with the NachenBlaster
+bool Actor::collideNB() const
 {
-    int xp = getWorld()->getPlayer()->getX();
-    int yp = getWorld()->getPlayer()->getY();
-    int rp = getWorld()->getPlayer()->getRadius();
-    int x = getX();
-    int y = getY();
-    int r = getRadius();
+    double xp = getWorld()->getPlayer()->getX();
+    double yp = getWorld()->getPlayer()->getY();
+    double rp = getWorld()->getPlayer()->getRadius();
+    double x = getX();
+    double y = getY();
+    double r = getRadius();
     return (dist(x, y, xp, yp) < 0.75 * (r + rp));
-}
-
-StudentWorld* Actor::getWorld()
-{
-    return m_world;
 }
 
 Actor::~Actor()
 {
-    std::cerr << "Actor Destructor" << std::endl;
+    //std::cerr << "Actor Destructor" << std::endl;
 }
 
 
@@ -107,9 +110,9 @@ Actor::~Actor()
 /////////////////////////////////////////////////////////////////////////
 
 NachenBlaster::NachenBlaster(StudentWorld* sw)
-:Actor(sw, IID_NACHENBLASTER, 0, 128), m_nCabbage(30), m_nTorpedo(0)
+:Actor(sw, IID_NACHENBLASTER, 0, VIEW_HEIGHT/2), m_nCabbage(FULLCABBAGE), m_nTorpedo(0)
 {
-    setHitpoints(50.0);
+    setHitpoints(FULLHITPOINT);
     setLabel(PLAYER);
 }
 
@@ -160,7 +163,7 @@ void NachenBlaster::doSomethingDiff()
                 break;
         }
     }
-    if (m_nCabbage < 30)
+    if (m_nCabbage < FULLCABBAGE)
         m_nCabbage++;
 }
 
@@ -169,10 +172,9 @@ void NachenBlaster::sufferDamage(double d)
     setHitpoints(getHitpoints()-d);
     if (getHitpoints() <= 0)
         setDead();
-    getWorld()->playSound(SOUND_BLAST);
 }
 
-int NachenBlaster::getCabbage()
+int NachenBlaster::getCabbage() const
 {
     return m_nCabbage;
 }
@@ -182,21 +184,267 @@ void NachenBlaster::addTorpedo(int n)
     m_nTorpedo += n;
 }
 
-int NachenBlaster::getTorpedo()
+int NachenBlaster::getTorpedo() const
 {
     return m_nTorpedo;
 }
 
 NachenBlaster::~NachenBlaster()
 {
-    std::cerr << "NachenBlaster Destructor" << std::endl;
+    //std::cerr << "NachenBlaster Destructor" << std::endl;
 }
+
+
+/////////////////////////////////////////////////////////////////////////
+/////////////////////////////    Star    ////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+Star::Star(StudentWorld* sw, double startX, double startY)
+:Actor(sw, IID_STAR, startX, startY, 0, 0, 3)
+{
+    double randomSize = randInt(5, 50) / 100.0;
+    setSize(randomSize);
+    setLabel(NEUTRAL);
+}
+
+void Star::doSomethingDiff()
+{
+    // The star must move 1 pixel to the left.
+    int x = getX()-1;
+    moveTo(x, getY());
+    if (getX() < 0)
+        setDead();
+}
+
+Star::~Star()
+{
+    //std::cerr << "Star Destructor" << std::endl;
+}
+
+/////////////////////////////////////////////////////////////////////////
+///////////////////////////// Explosion  ////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+Explosion::Explosion(StudentWorld* sw, double startX, double startY)
+:Actor(sw, IID_EXPLOSION, startX, startY, 0, 0.5, 0), m_tick(0)
+{
+    setLabel(NEUTRAL);
+}
+
+void Explosion::doSomethingDiff()
+{
+    // is it tooooo big?
+    setSize(1.5 * getSize());
+    m_tick++;
+    if (m_tick > 4)
+        setDead();
+}
+
+
+/////////////////////////////////////////////////////////////////////////
+///////////////////////////// Projectile ////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+
+Projectile::Projectile(StudentWorld* sw, int imageID, double startX, double startY, int dir, double size, int depth)
+:Actor(sw, imageID, startX, startY, dir, size, depth)
+{ }
+
+void Projectile::doSomethingDiff()
+{
+    if (getX() < 0 || getX() >= VIEW_WIDTH)
+        setDead();
+    else
+    {
+        checkCollision();
+        if (!dead())
+        {
+            moveProjectile();
+            checkCollision();
+        }
+    }
+}
+
+void Projectile::sufferDamage(double d)
+{
+    // Projectiles do not suffer damage.
+    return;
+}
+
+Projectile::~Projectile()
+{
+    //std::cerr << "Projectile Destructor" << std::endl;
+}
+
+
+///////////////////////////////Cabbage//////////////////////////////////
+Cabbage::Cabbage(StudentWorld* sw, double startX, double startY)
+:Projectile(sw, IID_CABBAGE, startX, startY, 0, 0.5, 1)
+{
+    setLabel(PLAYER);
+}
+
+void Cabbage::moveProjectile()
+{
+    moveTo(getX()+8, getY());
+    setDirection(getDirection()+20);
+}
+
+void Cabbage::checkCollision()
+{
+    double damage = 0.0;
+    if (getWorld()->collide(this, damage))
+        setDead();
+}
+
+int Cabbage::getDamagePoints() const
+{
+    return CABBAGEDAMAGE;
+}
+
+//////////////////////////////Turnip///////////////////////////////////
+Turnip::Turnip(StudentWorld* sw, double startX, double startY)
+:Projectile(sw, IID_TURNIP, startX, startY, 0, 0.5, 1)
+{
+    setLabel(NEUTRAL);
+}
+
+void Turnip::moveProjectile()
+{
+    moveTo(getX()-6, getY());
+    setDirection(getDirection()+20);
+}
+
+void Turnip::checkCollision()
+{
+    if (collideNB())
+    {
+        setDead();
+        getWorld()->getPlayer()->sufferDamage(2.0);
+        getWorld()->playSound(SOUND_BLAST);
+    }
+}
+
+int Turnip::getDamagePoints() const
+{
+    return TURNIPDAMAGE;
+}
+
+///////////////////////////////Torpedo//////////////////////////////////
+Torpedo::Torpedo(StudentWorld* sw, double startX, double startY, int d)
+:Projectile(sw, IID_TORPEDO, startX, startY, d, 0.5, 1)
+{
+    setDirection(d);
+    // give it a label when fire()
+}
+
+void Torpedo::moveProjectile()
+{
+    if (getLabel() == PLAYER)
+        moveTo(getX()+8, getY());
+    else
+        moveTo(getX()-8, getY());
+}
+
+void Torpedo::checkCollision()
+{
+    double damage = 0.0;
+    if (getWorld()->collide(this, damage))
+    {
+        setDead();
+    }
+    if (collideNB())
+    {
+        setDead();
+        getWorld()->getPlayer()->sufferDamage(TORPEDODAMAGE);
+        getWorld()->playSound(SOUND_BLAST);
+    }
+}
+
+int Torpedo::getDamagePoints() const
+{
+    return TORPEDODAMAGE;
+}
+
+/////////////////////////////////////////////////////////////////////////
+//////////////////////////////// Goodie  ////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+Goodie::Goodie(StudentWorld* sw, int imageID, double startX, double startY)
+:Actor(sw, imageID, startX, startY, 0, 0.5, 1)
+{
+    setLabel(NEUTRAL);
+}
+
+void Goodie::doSomethingDiff()
+{
+    // Set the goodie to dead if it is off screen.
+    if (getY() < 0 || getY() >= VIEW_HEIGHT)
+        setDead();
+    else
+    {
+        if (collideNB())
+        {
+            collisionReaction();
+            return;
+        }
+        if (!dead())
+        {
+            moveTo(getX()-0.75, getY()-0.75);
+            if (collideNB())
+            {
+                collisionReaction();
+                return;
+            }
+        }
+    }
+}
+
+void Goodie::collisionReaction()
+{
+    getWorld()->increaseScore(GOODIESCORE);
+    setDead();
+    getWorld()->playSound(SOUND_GOODIE);
+    bonus();
+}
+
+////////////////////////////////  Extralife  ////////////////////////////////
+Extralife::Extralife(StudentWorld* sw, double startX, double startY)
+: Goodie(sw, IID_LIFE_GOODIE, startX, startY)
+{ }
+
+void Extralife::bonus()
+{
+    getWorld()->incLives();
+}
+
+
+////////////////////////////////   Repair    ////////////////////////////////
+Repair::Repair(StudentWorld* sw, double startX, double startY)
+: Goodie(sw, IID_REPAIR_GOODIE, startX, startY)
+{ }
+
+void Repair::bonus()
+{
+    double health = getWorld()->getPlayer()->getHitpoints();
+    if (health + 10.0 > FULLHITPOINT)
+        getWorld()->getPlayer()->setHitpoints(50.0);
+    else
+        getWorld()->getPlayer()->setHitpoints(getWorld()->getPlayer()->getHitpoints() + 10.0);
+}
+
+
+////////////////////////////////TorpedoGoodie////////////////////////////////
+TorpedoGoodie::TorpedoGoodie(StudentWorld* sw, double startX, double startY)
+: Goodie(sw, IID_TORPEDO_GOODIE, startX, startY)
+{ }
+
+void TorpedoGoodie::bonus()
+{
+    getWorld()->getPlayer()->addTorpedo(5);
+}
+
 
 
 /////////////////////////////////////////////////////////////////////////
 /////////////////////////////   Alien    ////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
-
 Alien::Alien(StudentWorld* sw, int imageID, double startX, double startY, int dir, double size, int depth)
 :Actor(sw, imageID, startX, startY, dir, size, depth), m_speed(2.0), m_length(VIEW_WIDTH)
 {
@@ -207,55 +455,65 @@ Alien::Alien(StudentWorld* sw, int imageID, double startX, double startY, int di
     setLabel(ENEMY);
 }
 
-bool Alien::alienShip()
-{
-    return true;
-}
-
-void Alien::dropGoodie()
-{
-    return;
-}
-
-void Alien::sufferDamage(double d)
-{
-    setHitpoints(getHitpoints()-d);
-    
-    if (getHitpoints() <= 0)
-    {
-        setDead();
-        getWorld()->playSound(SOUND_DEATH);
-        Explosion* ex = new Explosion(getWorld(), getX(), getY());
-        getWorld()->animate(ex);
-    }
-    else
-        getWorld()->playSound(SOUND_BLAST);
-}
-
 void Alien::doSomethingDiff()
 {
-    if (getX() <= 0)
+    if (getX() < 0)
         setDead();
-    
-    checkCollision();
-    
-    // if need new flight plan
-    if (getY() <= 0 || getY() >= VIEW_WIDTH-1 || getLength() <= 0)
-        changeDir();
-    
-    // if can fire
-    int nbX = getWorld()->getPlayer()->getX();
-    int nbY = getWorld()->getPlayer()->getY();
-    if (getX() > nbX && getY() <= nbY + 4 && getY() >= nbY - 4)
-        fire();
-    
-    move();
-    
-    if (!dead())
-        checkCollision();
+    else
+    {
+        checkCollision(getDamagePoints(), getScore());
+        if (!dead())
+        {
+            double nbX = getWorld()->getPlayer()->getX();
+            double nbY = getWorld()->getPlayer()->getY();
+            
+            // If need new flight plan
+            if (getY() <= 0 || getY() >= VIEW_WIDTH-1 || getLength() <= 0)
+                changeDirection();
+            
+            // If the player is in my sight and can fire
+            if (getX() > nbX && getY() <= nbY + 4 && getY() >= nbY - 4)
+                fire();
+            
+            move();
+            checkCollision(getDamagePoints(), getScore());
+        }
+    }
 }
 
-void Alien::changeDir()
+void Alien::checkCollision(int damage, int score)
+{
+    double dp = 0.0;
+    if (collideNB())
+    {
+        getWorld()->getPlayer()->sufferDamage(damage);
+        fatalCollision(score);
+        dropGoodie();
+    }
+    else if (getWorld()->collide(this, dp))
+    {
+        sufferDamage(dp/2);
+        if (dead())
+        {
+            fatalCollision(score);
+            dropGoodie();
+        }
+        else
+            getWorld()->playSound(SOUND_BLAST);
+    }
+}
+
+void Alien::fatalCollision(int score)
+{
+    getWorld()->increaseScore(score);
+    setDead();
+    getWorld()->addDestroyed();
+    getWorld()->playSound(SOUND_DEATH);
+    Explosion* ex = new Explosion(getWorld(), getX(), getY());
+    getWorld()->animate(ex);
+}
+
+void Alien::changeDirection()
 {
     if (getY() >= VIEW_WIDTH-1)
     {
@@ -268,10 +526,26 @@ void Alien::changeDir()
     changeDirDiff();
 }
 
-void Alien::fire()
+void Alien::changeDirDiff()
 {
-    fireDiff();
-    //getWorld()->playSound(SOUND_ALIEN_SHOOT);
+    if (getLength() <= 0)
+    {
+        int randdir = randInt(1, 3);
+        switch(randdir)
+        {
+            case 1:
+                setTravelDir(UPLEFT);
+                break;
+            case 2:
+                setTravelDir(DOWNLEFT);
+                break;
+            case 3:
+                setTravelDir(DUELEFT);
+                break;
+        }
+    }
+    int randl = randInt(1, 32);
+    setLength(randl);
 }
 
 void Alien::move()
@@ -292,17 +566,32 @@ void Alien::move()
     moveDiff();
 }
 
-double Alien::getSpeed()
+void Alien::moveDiff()
+{
+    setLength(getLength()-1);
+}
+
+bool Alien::alienShip() const
+{
+    return true;
+}
+
+void Alien::sufferDamage(double d)
+{
+    setHitpoints(getHitpoints()-d);
+}
+
+double Alien::getSpeed() const
 {
     return m_speed;
 }
 
-int Alien::getLength()
+int Alien::getLength() const
 {
     return m_length;
 }
 
-int Alien::getTravelDir()
+int Alien::getTravelDir() const
 {
     return m_travelDir;
 }
@@ -322,19 +611,9 @@ void Alien::setTravelDir(int tr)
     m_travelDir = tr;
 }
 
-void Alien::fatalCollision(int score)
-{
-    getWorld()->increaseScore(score);
-    setDead();
-    getWorld()->addDestroyed();
-    getWorld()->playSound(SOUND_DEATH);
-    Explosion* ex = new Explosion(getWorld(), getX(), getY());
-    getWorld()->animate(ex);
-}
-
 Alien::~Alien()
 {
-    std::cerr << "Alien Destructor" << std::endl;
+    //std::cerr << "Alien Destructor" << std::endl;
 }
 
 //////////////////////////Smallgon////////////////////////////////
@@ -344,31 +623,12 @@ Smallgon::Smallgon(StudentWorld* sw, double startX, double startY)
     int n = getWorld()->getLevel();
     double initHP = 5 * (1 + (n-1) * 0.1);
     setHitpoints(initHP);
+    setSpeed(SMALLSPEED);
 }
 
-void Smallgon::changeDirDiff()
-{
-    if (getLength() <= 0)
-    {
-        int randdir = randInt(1, 3);
-        switch(randdir)
-        {
-            case 1:
-                setTravelDir(UPLEFT);
-                break;
-            case 2:
-                setTravelDir(DOWNLEFT);
-                break;
-            case 3:
-                setTravelDir(DUELEFT);
-                break;
-        }
-    }
-    int randl = randInt(1, 32);
-    setLength(randl);
-}
 
-void Smallgon::fireDiff()
+
+void Smallgon::fire()
 {
     int chance = randInt(1, (20 / getWorld()->getLevel() + 5));
     if (chance == 1)
@@ -379,33 +639,20 @@ void Smallgon::fireDiff()
     }
 }
 
-void Smallgon::moveDiff()
-{
-    setLength(getLength()-1);
-}
-
 void Smallgon::dropGoodie()
 {
+    // Smallgon does not drop goodies.
     return;
 }
 
-void Smallgon::checkCollision()
+int Smallgon::getDamagePoints() const
 {
-    double damage = 0.0;
-    if (collideNB())
-    {
-        getWorld()->getPlayer()->sufferDamage(5.0);
-        fatalCollision(250);
-    }
-    
-    else if (getWorld()->collide(this, damage))
-    {
-        sufferDamage(damage);
-        if (dead())
-            fatalCollision(250);
-        else
-            getWorld()->playSound(SOUND_BLAST);
-    }
+    return 5;
+}
+
+int Smallgon::getScore() const
+{
+    return SMALLSCORE;
 }
 
 //////////////////////////Smoregon//////////////////////////////////
@@ -415,35 +662,10 @@ Smoregon::Smoregon(StudentWorld* sw, double startX, double startY)
     int n = getWorld()->getLevel();
     double initHP = 5 * (1 + (n-1) * 0.1);
     setHitpoints(initHP);
+    setSpeed(SMORESPEED);
 }
 
-void Smoregon::changeDirDiff()
-{
-    if (getLength() <= 0)
-    {
-        int randdir = randInt(1, 3);
-        //int n = getWorld()->getLevel();
-        switch(randdir)
-        {
-            case 1:
-                // upleft
-                setTravelDir(UPLEFT);
-                break;
-            case 2:
-                // downleft
-                setTravelDir(DOWNLEFT);
-                break;
-            case 3:
-                // due left
-                setTravelDir(DUELEFT);
-                break;
-        }
-    }
-    int randl = randInt(1, 32);
-    setLength(randl);
-}
-
-void Smoregon::fireDiff()
+void Smoregon::fire()
 {
     int chance = randInt(1, (20 / getWorld()->getLevel() + 5));
     if (chance == 1)
@@ -458,11 +680,6 @@ void Smoregon::fireDiff()
         setLength(VIEW_WIDTH);
         setSpeed(5.0);
     }
-}
-
-void Smoregon::moveDiff()
-{
-    setLength(getLength()-1);
 }
 
 void Smoregon::dropGoodie()
@@ -484,26 +701,15 @@ void Smoregon::dropGoodie()
     }
 }
 
-void Smoregon::checkCollision()
+
+int Smoregon::getDamagePoints() const
 {
-    double damage = 0.0;
-    if (collideNB())
-    {
-        getWorld()->getPlayer()->sufferDamage(5.0);
-        fatalCollision(250);
-        dropGoodie();
-    }
-    else if (getWorld()->collide(this, damage))
-    {
-        sufferDamage(damage);
-        if (dead())
-        {
-            fatalCollision(250);
-            dropGoodie();
-        }
-        else
-            getWorld()->playSound(SOUND_BLAST);
-    }
+    return 5;
+}
+
+int Smoregon::getScore() const
+{
+    return SMORESCORE;
 }
 
 //////////////////////////Snagglegon////////////////////////////////
@@ -514,7 +720,7 @@ Snagglegon::Snagglegon(StudentWorld* sw, double startX, double startY)
     double initHP = 10 * (1 + (n-1) * 0.1);
     setHitpoints(initHP);
     setTravelDir(DOWNLEFT);
-    setSpeed(1.75);
+    setSpeed(SNAGGLESPEED);
 }
 
 void Snagglegon::changeDirDiff()
@@ -534,7 +740,14 @@ void Snagglegon::changeDirDiff()
     }
 }
 
-void Snagglegon::fireDiff()
+
+void Snagglegon::moveDiff()
+{
+    // Snagglegon does not have a flight length.
+    return;
+}
+
+void Snagglegon::fire()
 {
     int chance = randInt(1, (15 / getWorld()->getLevel() + 10));
     if (chance == 1)
@@ -544,11 +757,6 @@ void Snagglegon::fireDiff()
         getWorld()->animate(t);
         getWorld()->playSound(SOUND_TORPEDO);
     }
-}
-
-void Snagglegon::moveDiff()
-{
-    return;
 }
 
 void Snagglegon::dropGoodie()
@@ -561,273 +769,18 @@ void Snagglegon::dropGoodie()
     }
 }
 
-void Snagglegon::checkCollision()
+int Snagglegon::getDamagePoints() const
 {
-    double damage = 0.0;
-    if (collideNB())
-    {
-        getWorld()->getPlayer()->sufferDamage(15.0);
-        fatalCollision(1000);
-        dropGoodie();
-    }
-    else if (getWorld()->collide(this, damage))
-    {
-        sufferDamage(damage);
-        if (dead())
-        {
-            fatalCollision(1000);
-            dropGoodie();
-        }
-        else
-            getWorld()->playSound(SOUND_BLAST);
-    }
+    return 15;
 }
 
-/////////////////////////////////////////////////////////////////////////
-/////////////////////////////    Star    ////////////////////////////////
-/////////////////////////////////////////////////////////////////////////
-Star::Star(StudentWorld* sw, int x, int y)
-:Actor(sw, IID_STAR, x, y, 0, 0, 3)
+int Snagglegon::getScore() const
 {
-    double randomSize = randInt(5, 50) / 100.0;
-    setSize(randomSize);
-    setLabel(NEUTRAL);
-}
-
-void Star::doSomethingDiff()
-{
-    int x = getX()-1;
-    moveTo(x, getY());
-    if (getX() < 0)
-        setDead();
-}
-
-Star::~Star()
-{
-    std::cerr << "Star Destructor" << std::endl;
+    return SNAGGLESCORE;
 }
 
 
-/////////////////////////////////////////////////////////////////////////
-///////////////////////////// Projectile ////////////////////////////////
-/////////////////////////////////////////////////////////////////////////
-
-Projectile::Projectile(StudentWorld* sw, int imageID, double startX, double startY, int dir, double size, int depth)
-:Actor(sw, imageID, startX, startY, dir, size, depth)
-{ }
-
-void Projectile::doSomethingDiff()
-{
-    if (getX() < 0 || getX() >= VIEW_WIDTH)
-        setDead();
-}
-
-void Projectile::sufferDamage(double d)
-{
-    return;
-}
-
-Projectile::~Projectile()
-{
-    std::cerr << "Projectile Destructor" << std::endl;
-}
 
 
-///////////////////////////////Cabbage//////////////////////////////////
-Cabbage::Cabbage(StudentWorld* sw, int x, int y)
-:Projectile(sw, IID_CABBAGE, x, y, 0, 0.5, 1)
-{
-    setLabel(PLAYER);
-}
 
-void Cabbage::doSomethingDiff()
-{
-    Projectile::doSomethingDiff();
-    checkCollision();
-    if (!dead())
-    {
-        moveTo(getX()+8, getY());
-        setDirection(getDirection()+20);
-    }
-    checkCollision();
-}
 
-void Cabbage::checkCollision()
-{
-    double damage = 0.0;
-    if (getWorld()->collide(this, damage))
-    {
-        setDead();
-    }
-}
-
-int Cabbage::getDamagePoints()
-{
-    return 2;
-}
-
-//////////////////////////////Turnip///////////////////////////////////
-Turnip::Turnip(StudentWorld* sw, int x, int y)
-:Projectile(sw, IID_TURNIP, x, y, 0, 0.5, 1)
-{
-    setLabel(NEUTRAL);
-}
-
-void Turnip::doSomethingDiff()
-{
-    Projectile::doSomethingDiff();
-    checkCollision();
-    if (!dead())
-    {
-        moveTo(getX()-6, getY());
-        setDirection(getDirection()+20);
-    }
-    checkCollision();
-}
-
-void Turnip::checkCollision()
-{
-    if (collideNB())
-    {
-        setDead();
-        getWorld()->getPlayer()->sufferDamage(2.0);
-    }
-}
-
-int Turnip::getDamagePoints()
-{
-    return 2;
-}
-
-///////////////////////////////Torpedo//////////////////////////////////
-Torpedo::Torpedo(StudentWorld* sw, int x, int y, int d)
-:Projectile(sw, IID_TORPEDO, x, y, d, 0.5, 1)
-{
-    setDirection(d);
-    // give it a label when fire()
-}
-
-void Torpedo::doSomethingDiff()
-{
-    Projectile::doSomethingDiff();
-    checkCollision();
-    if (!dead())
-    {
-        if (getLabel() == PLAYER)
-            moveTo(getX()+6, getY());
-        else
-            moveTo(getX()-6, getY());
-    }
-    checkCollision();
-}
-
-void Torpedo::checkCollision()
-{
-    double damage = 0.0;
-    if (getWorld()->collide(this, damage))
-    {
-        setDead();
-    }
-    if (collideNB())
-    {
-        setDead();
-        getWorld()->getPlayer()->sufferDamage(8);
-    }
-}
-
-int Torpedo::getDamagePoints()
-{
-    return 8;
-}
-
-/////////////////////////////////////////////////////////////////////////
-///////////////////////////// Explosion  ////////////////////////////////
-/////////////////////////////////////////////////////////////////////////
-Explosion::Explosion(StudentWorld* sw, int startX, int startY)
-:Actor(sw, IID_EXPLOSION, startX, startY, 0, 0.5, 0), m_tick(0)
-{
-    setLabel(NEUTRAL);
-}
-
-int Explosion::getTickCount()
-{
-    return m_tick;
-}
-
-void Explosion::doSomethingDiff()
-{
-    setSize(1.5 * getSize());
-    m_tick++;
-    if (getTickCount() > 4)
-        setDead();
-}
-
-/////////////////////////////////////////////////////////////////////////
-//////////////////////////////// Goodie  ////////////////////////////////
-/////////////////////////////////////////////////////////////////////////
-Goodie::Goodie(StudentWorld* sw, int imageID, int x, int y)
-:Actor(sw, imageID, x, y, 0, 0.5, 1)
-{
-    setLabel(NEUTRAL);
-}
-
-void Goodie::doSomethingDiff()
-{
-    if (getY() < 0 || getY() >= VIEW_HEIGHT)
-        setDead();
-    else
-    {
-        if (collideNB())
-        {
-            collisionReaction();
-            return;
-        }
-        moveTo(getX()-0.75, getY()-0.75);
-        if (collideNB())
-        {
-            collisionReaction();
-            return;
-        }
-    }
-}
-
-void Goodie::collisionReaction()
-{
-    getWorld()->increaseScore(100);
-    setDead();
-    getWorld()->playSound(SOUND_GOODIE);
-    bonus();
-}
-
-////////////////////////////////  Extralife  ////////////////////////////////
-Extralife::Extralife(StudentWorld* sw, int startX, int startY)
-: Goodie(sw, IID_LIFE_GOODIE, startX, startY)
-{ }
-
-void Extralife::bonus()
-{
-    if (getWorld()->getLives() < 3)
-        getWorld()->incLives();
-}
-////////////////////////////////   Repair    ////////////////////////////////
-Repair::Repair(StudentWorld* sw, int startX, int startY)
-: Goodie(sw, IID_REPAIR_GOODIE, startX, startY)
-{ }
-
-void Repair::bonus()
-{
-    double health = getWorld()->getPlayer()->getHitpoints();
-    if (health + 10.0 >= 50.0)
-        getWorld()->getPlayer()->setHitpoints(50.0);
-    else
-        getWorld()->getPlayer()->setHitpoints(getWorld()->getPlayer()->getHitpoints() + 10.0);
-}
-////////////////////////////////TorpedoGoodie////////////////////////////////
-TorpedoGoodie::TorpedoGoodie(StudentWorld* sw, int startX, int startY)
-: Goodie(sw, IID_TORPEDO_GOODIE, startX, startY)
-{ }
-
-void TorpedoGoodie::bonus()
-{
-    getWorld()->getPlayer()->addTorpedo(5);
-}

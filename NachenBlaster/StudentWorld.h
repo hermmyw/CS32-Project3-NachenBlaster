@@ -18,21 +18,27 @@ public:
     virtual int init();
     virtual int move();
     virtual void cleanUp();
-    virtual void animate(Actor* obj);
-    virtual bool collide(Actor* obj, double& damage);
-    virtual void addDestroyed();
+    void animate(Actor* obj);
+    void addDestroyed();
+    bool collide(Actor* obj, double& damage);
     NachenBlaster* getPlayer();
     virtual ~StudentWorld();
 
 private:
-    int m_destroyed;
-    int m_remained;
-    int m_total;
+    // The actor collection:
     std::vector<Actor*> m_actors;
+    // The player:
     NachenBlaster* m_player;
-    int m_level;
+    
+    int m_destroyed;
+    int m_total;
     int m_nAlien;
-    double dist(int x1, int y1, int x2, int y2);
+    
+    // Helper functions:
+    int getRemained();
+    void insertStars();
+    void insertAliens();
+    void updateDisplayText();
 };
 
 #endif // STUDENTWORLD_H_

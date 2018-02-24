@@ -14,40 +14,54 @@ const int PLAYER = 1;
 const int ENEMY = 2;
 const int NEUTRAL = 3;
 
+const double FULLHITPOINT = 50.0;
+const int FULLCABBAGE = 30;
+
+const int CABBAGEDAMAGE = 2;
+const int TURNIPDAMAGE = 2;
+const int TORPEDODAMAGE = 8;
+
+const int SMALLSCORE = 250;
+const int SMORESCORE = 250;
+const int SNAGGLESCORE = 1000;
+const int GOODIESCORE = 100;
+
+const double SMALLSPEED = 2.0;
+const double SMORESPEED = 2.0;
+const double SNAGGLESPEED = 0.75;
+
+double dist(double x1, double y1, double x2, double y2);
+
 class StudentWorld;
+
+/////////////////////////////////////////////////////////////////////////
+/////////////////////////////   Actor    ////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 class Actor : public GraphObject
 {
 public:
     // Constructor
     Actor(StudentWorld* sw, int imageID, double startX, double startY, int dir = 0, double size = 1.0, int depth = 0);
     
-    // Virtual functions
     virtual void doSomething();    // check alive
     virtual void sufferDamage(double d);
-    virtual bool alienShip();
-    virtual int getDamagePoints();
-    
-    // Accessor
-    double getHitpoints();
-    int getLabel();
-    StudentWorld* getWorld();
-    
-    // Mutator function
+    virtual bool alienShip() const;
+    virtual int getDamagePoints() const;
+    double getHitpoints() const;
+    int getLabel() const;
+    StudentWorld* getWorld() const;
     void setHitpoints(double hp);
     void setDead();
     void setLabel(int n);
-    
-    // Check Status
-    bool dead();
-    bool offScreen(int x, int y);
-    bool collideNB();
+    bool dead() const;
+    bool offScreen(double x, double y) const;
+    bool collideNB() const;
     
     // Destructor
     virtual ~Actor();
     
 private:
     int m_label;
-    double dist(int x1, int y1, int x2, int y2);
     double m_hitpoints;
     virtual void doSomethingDiff() = 0;
     StudentWorld* m_world;
@@ -58,8 +72,8 @@ class NachenBlaster : public Actor
 public:
     NachenBlaster(StudentWorld* sw);
     virtual void sufferDamage(double d);
-    int getCabbage();
-    int getTorpedo();
+    int getCabbage() const;
+    int getTorpedo() const;
     void addTorpedo(int n);
     virtual ~NachenBlaster();
 private:
@@ -71,47 +85,156 @@ private:
 
 
 
-
+/////////////////////////////////////////////////////////////////////////
+/////////////////////////////    Star    ////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 class Star : public Actor
 {
 public:
-    Star(StudentWorld*sw, int x, int y);
+    Star(StudentWorld*sw, double startX, double startY);
     virtual ~Star();
 private:
     virtual void doSomethingDiff();
 };
 
 
+/////////////////////////////////////////////////////////////////////////
+///////////////////////////// Explosion  ////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+class Explosion : public Actor
+{
+public:
+    Explosion(StudentWorld* sw, double startX, double startY);
+private:
+    virtual void doSomethingDiff();
+    int m_tick;
+};
+
+
+/////////////////////////////////////////////////////////////////////////
+///////////////////////////// Projectile ////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+class Projectile : public Actor
+{
+public:
+    Projectile(StudentWorld* sw, int imageID, double startX, double startY, int dir = 0, double size = 1.0, int depth = 0);
+    virtual void checkCollision() = 0;
+    virtual int getDamagePoints() const = 0;
+    virtual void sufferDamage(double d);
+    virtual void doSomethingDiff();
+    virtual ~Projectile();
+private:
+    virtual void moveProjectile() = 0;
+};
+
+///////////////////////////////Cabbage//////////////////////////////////
+class Cabbage : public Projectile
+{
+public:
+    Cabbage(StudentWorld* sw, double startX, double startY);
+    virtual void checkCollision();
+    virtual int getDamagePoints() const;
+private:
+    virtual void moveProjectile();
+};
+
+//////////////////////////////Turnip///////////////////////////////////
+class Turnip : public Projectile
+{
+public:
+    Turnip(StudentWorld* sw, double startX, double startY);
+    virtual void checkCollision();
+    virtual int getDamagePoints() const;
+    
+private:
+    virtual void moveProjectile();
+};
+
+///////////////////////////////Torpedo//////////////////////////////////
+class Torpedo : public Projectile
+{
+public:
+    Torpedo(StudentWorld* sw, double startX, double startY, int d);
+    virtual void checkCollision();
+    virtual int getDamagePoints() const;
+    
+private:
+    virtual void moveProjectile();
+};
 
 
 
+
+/////////////////////////////////////////////////////////////////////////
+//////////////////////////////// Goodie  ////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+class Goodie : public Actor
+{
+public:
+    Goodie(StudentWorld* sw, int imageID, double startX, double startY);
+private:
+    virtual void doSomethingDiff();
+    virtual void collisionReaction();
+    virtual void bonus() = 0;
+};
+
+///////////////////////////////  Extralife  /////////////////////////////
+class Extralife : public Goodie
+{
+public:
+    Extralife(StudentWorld* sw, double startX, double startY);
+private:
+    virtual void bonus();
+};
+
+///////////////////////////////   Repair    /////////////////////////////
+class Repair : public Goodie
+{
+public:
+    Repair(StudentWorld* sw, double startX, double startY);
+private:
+    virtual void bonus();
+};
+
+///////////////////////////////TorpedoGoodie/////////////////////////////
+class TorpedoGoodie : public Goodie
+{
+public:
+    TorpedoGoodie(StudentWorld* sw, double startX, double startY);
+private:
+    virtual void bonus();
+};
+
+
+
+/////////////////////////////////////////////////////////////////////////
+/////////////////////////////   Alien    ////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 class Alien : public Actor
 {
 public:
     Alien(StudentWorld* sw, int imageID, double startX, double startY, int dir = 0, double size = 1.5, int depth = 1);
-    virtual bool alienShip();
+    virtual bool alienShip() const;
     virtual void sufferDamage(double d);
-    virtual void changeDir();
-    virtual void fire();
-    virtual void move();
-    virtual void checkCollision() = 0;
-    virtual void dropGoodie();   // for smoregon and snagglegon
-    virtual void fatalCollision(int score);
-    
-    double getSpeed();
-    int getLength();
-    int getTravelDir();
-    
+    double getSpeed() const;
+    int getLength() const;
     void setSpeed(double s);
     void setLength(int l);
     void setTravelDir(int tr);
-    
     virtual ~Alien();
 private:
     virtual void doSomethingDiff();
-    virtual void changeDirDiff() = 0;
-    virtual void fireDiff() = 0;
-    virtual void moveDiff() = 0;
+    virtual void checkCollision(int damage, int score);
+    virtual void fatalCollision(int score);
+    virtual void changeDirection();
+    virtual void changeDirDiff();
+    virtual void move();
+    virtual void moveDiff();
+    virtual void dropGoodie() = 0;   // for smoregon and snagglegon
+    virtual void fire() = 0;
+    virtual int getDamagePoints() const = 0;
+    virtual int getScore() const = 0;
+    int getTravelDir() const;
     double m_speed;
     int m_length;
     int m_travelDir;
@@ -124,11 +247,11 @@ class Smallgon : public Alien
 {
 public:
     Smallgon(StudentWorld* sw, double startX, double startY);
-    virtual void changeDirDiff();
-    virtual void fireDiff();
-    virtual void moveDiff();
+private:
+    virtual void fire();
     virtual void dropGoodie();
-    virtual void checkCollision();
+    virtual int getDamagePoints() const;
+    virtual int getScore() const;
 };
 
 
@@ -137,11 +260,11 @@ class Smoregon : public Alien
 {
 public:
     Smoregon(StudentWorld* sw, double startX, double startY);
-    virtual void changeDirDiff();
-    virtual void fireDiff();
-    virtual void moveDiff();
+private:
+    virtual void fire();
     virtual void dropGoodie();
-    virtual void checkCollision();
+    virtual int getDamagePoints() const;
+    virtual int getScore() const;
 };
 
 
@@ -150,113 +273,13 @@ class Snagglegon : public Alien
 {
 public:
     Snagglegon(StudentWorld* sw, double startX, double startY);
+private:
     virtual void changeDirDiff();
-    virtual void fireDiff();
     virtual void moveDiff();
+    virtual void fire();
     virtual void dropGoodie();
-    virtual void checkCollision();
-};
-
-
-
-
-
-
-
-class Projectile : public Actor
-{
-public:
-    Projectile(StudentWorld* sw, int imageID, double startX, double startY, int dir = 0, double size = 1.0, int depth = 0);
-    virtual void checkCollision() = 0;
-    virtual int getDamagePoints() = 0;
-    virtual void sufferDamage(double d);
-    virtual void doSomethingDiff();
-    virtual ~Projectile();
-private:
-    
-};
-
-class Cabbage : public Projectile
-{
-public:
-    Cabbage(StudentWorld* sw, int x, int y);
-    virtual void checkCollision();
-    virtual int getDamagePoints();
-private:
-    virtual void doSomethingDiff();
-};
-
-class Turnip : public Projectile
-{
-public:
-    Turnip(StudentWorld* sw, int x, int y);
-    virtual void checkCollision();
-    virtual int getDamagePoints();
-
-private:
-    virtual void doSomethingDiff();
-};
-
-class Torpedo : public Projectile
-{
-public:
-    Torpedo(StudentWorld* sw, int x, int y, int d);
-    virtual void checkCollision();
-    virtual int getDamagePoints();
-
-private:
-    virtual void doSomethingDiff();
-};
-
-
-
-
-
-
-
-class Goodie : public Actor
-{
-public:
-    Goodie(StudentWorld* sw, int imageID, int x, int y);
-    
-private:
-    virtual void doSomethingDiff();
-    virtual void collisionReaction();
-    virtual void bonus() = 0;
-};
-
-class Extralife : public Goodie
-{
-public:
-    Extralife(StudentWorld* sw, int startX, int startY);
-private:
-    virtual void bonus();
-};
-
-class Repair : public Goodie
-{
-public:
-    Repair(StudentWorld* sw, int startX, int startY);
-private:
-    virtual void bonus();
-};
-
-class TorpedoGoodie : public Goodie
-{
-public:
-    TorpedoGoodie(StudentWorld* sw, int startX, int startY);
-private:
-    virtual void bonus();
-};
-
-class Explosion : public Actor
-{
-public:
-    Explosion(StudentWorld* sw, int x, int y);
-    int getTickCount();
-private:
-    virtual void doSomethingDiff();
-    int m_tick;
+    virtual int getDamagePoints() const;
+    virtual int getScore() const;
 };
 
 
