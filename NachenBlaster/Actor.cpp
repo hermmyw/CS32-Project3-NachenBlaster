@@ -21,7 +21,7 @@ void Actor::doSomething()
         doSomethingDiff();
 }
 
-bool Actor::isAlien()
+bool Actor::alienShip()
 {
     return false;
 }
@@ -207,7 +207,7 @@ Alien::Alien(StudentWorld* sw, int imageID, double startX, double startY, int di
     setLabel(ENEMY);
 }
 
-bool Alien::isAlien()
+bool Alien::alienShip()
 {
     return true;
 }
@@ -227,11 +227,11 @@ void Alien::sufferDamage(int d)
         getWorld()->playSound(SOUND_DEATH);
         Explosion* ex = new Explosion(getWorld(), getX(), getY());
         getWorld()->animate(ex);
-        dropGoodie();
     }
     else
         getWorld()->playSound(SOUND_BLAST);
 }
+
 void Alien::doSomethingDiff()
 {
     if (getX() <= 0)
@@ -250,8 +250,9 @@ void Alien::doSomethingDiff()
         fire();
     
     move();
-
-    checkCollision();
+    
+    if (!die())
+        checkCollision();
 }
 
 void Alien::changeDir()
@@ -537,11 +538,7 @@ void Snagglegon::fireDiff()
     if (chance == 1)
         {
         Torpedo* t = new Torpedo(getWorld(), getX()-14, getY(), 180);
-<<<<<<< HEAD
         t->setLabel(NEUTRAL);
-=======
-        t->setLabel(ENEMY);
->>>>>>> eafea760b0fa5e21a960de142b591b2f91ddc529
         getWorld()->animate(t);
         getWorld()->playSound(SOUND_TORPEDO);
     }
@@ -583,6 +580,7 @@ void Snagglegon::checkCollision()
             getWorld()->playSound(SOUND_BLAST);
     }
 }
+
 /////////////////////////////////////////////////////////////////////////
 /////////////////////////////    Star    ////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
@@ -816,7 +814,11 @@ Repair::Repair(StudentWorld* sw, int startX, int startY)
 
 void Repair::bonus()
 {
-    getWorld()->getPlayer()->setHitpoints(getHitpoints() + 10);
+    int health = getWorld()->getPlayer()->getHitpoints();
+    if (health + 10 >= 50)
+        getWorld()->getPlayer()->setHitpoints(50);
+    else
+        getWorld()->getPlayer()->setHitpoints(getWorld()->getPlayer()->getHitpoints() + 10);
 }
 ////////////////////////////////TorpedoGoodie////////////////////////////////
 TorpedoGoodie::TorpedoGoodie(StudentWorld* sw, int startX, int startY)

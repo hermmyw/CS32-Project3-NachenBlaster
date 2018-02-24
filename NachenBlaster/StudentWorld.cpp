@@ -38,7 +38,7 @@ int StudentWorld::init()
     m_nAlien = 0;
     m_destroyed = 0;
     m_total = 6 + (4 * getLevel());
-    m_remained = m_total;
+    m_remained = m_total - m_destroyed;
     
     return GWSTATUS_CONTINUE_GAME;
 }
@@ -62,7 +62,7 @@ int StudentWorld::move()
         {
             Actor* temp = m_actors.at(i);
             m_actors.erase(m_actors.begin()+i);
-            if (temp->isAlien())
+            if (temp->alienShip())
                 m_nAlien--;
             delete temp;
             i--;
@@ -77,7 +77,7 @@ int StudentWorld::move()
     
     else
     {
-        if (m_remained == 0)
+        if (m_remained <= 0)
             return GWSTATUS_FINISHED_LEVEL;
         m_player->doSomething();
     }
@@ -123,6 +123,7 @@ int StudentWorld::move()
     oss << "  Level: " << getLevel();
     oss << "  Cabbages: " << m_player->getCabbage()*100/30 << "%";
     oss << "  Torpedoes: " << m_player->getTorpedo();
+    // oss << "  Remain: " << m_remained;
     string text = oss.str();
     setGameStatText(text);
     
@@ -176,14 +177,10 @@ bool StudentWorld::collide(Actor* obj, double& damage)
 //                else if (label1 == ENEMY)  // obj is a player proj, m_actors[i] is an alien
 //                    m_actors.at(i)->sufferDamage(2);
                 if (m_actors.at(i)->getLabel() == PLAYER)
-<<<<<<< HEAD
                 {
                     damage = m_actors.at(i)->getDamagePoints();
                     m_actors.at(i)->setDead();
                 }
-=======
-                    damage = m_actors.at(i)->getDamagePoints();
->>>>>>> eafea760b0fa5e21a960de142b591b2f91ddc529
                 return true;
             }
         }

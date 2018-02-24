@@ -24,7 +24,7 @@ public:
     // Virtual functions
     virtual void doSomething();    // check alive
     virtual void sufferDamage(int d);
-    virtual bool isAlien();
+    virtual bool alienShip();
     virtual int getDamagePoints();
     
     // Accessor
@@ -89,7 +89,7 @@ class Alien : public Actor
 {
 public:
     Alien(StudentWorld* sw, int imageID, double startX, double startY, int dir = 0, double size = 1.5, int depth = 1);
-    virtual bool isAlien();
+    virtual bool alienShip();
     virtual void sufferDamage(int d);
     virtual void changeDir();
     virtual void fire();
