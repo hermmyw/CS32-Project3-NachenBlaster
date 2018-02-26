@@ -431,6 +431,11 @@ void Goodie::collisionReaction()
     bonus();
 }
 
+Goodie::~Goodie()
+{
+    // std::cerr << "Goodie Destructor" << std::endl;
+}
+
 ////////////////////////////////  Extralife  ////////////////////////////////
 Extralife::Extralife(StudentWorld* sw, double startX, double startY)
 : Goodie(sw, IID_LIFE_GOODIE, startX, startY)

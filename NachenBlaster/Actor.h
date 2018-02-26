@@ -26,7 +26,7 @@ const int SMORESCORE = 250;
 const int SNAGGLESCORE = 1000;
 const int GOODIESCORE = 100;
 
-const double SMALLSPEED = 0.5;
+const double SMALLSPEED = 2.0;
 const double SMORESPEED = 2.0;
 const double SNAGGLESPEED = 1.75;
 
@@ -73,6 +73,10 @@ private:
     StudentWorld* m_world;
 };
 
+
+/////////////////////////////////////////////////////////////////////////
+////////////////////////////NachenBlaster////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 class NachenBlaster : public Actor
 {
 public:
@@ -179,6 +183,7 @@ class Goodie : public Actor
 {
 public:
     Goodie(StudentWorld* sw, int imageID, double startX, double startY);
+    virtual ~Goodie();
 private:
     virtual void doSomethingDiff();
     void collisionReaction();
