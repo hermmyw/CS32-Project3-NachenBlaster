@@ -20,7 +20,7 @@ public:
     virtual void cleanUp();
     void animate(Actor* obj);
     void addDestroyed();
-    bool collide(Actor* obj, double& damage);
+    Actor* collideWith(Actor* obj);
     NachenBlaster* getPlayer();
     
     virtual ~StudentWorld();

@@ -130,13 +130,12 @@ void NachenBlaster::doSomethingDiff()
             case KEY_PRESS_SPACE:
                 if (m_nCabbage >= 5)
                 {
-                	// Fire 5 cabbages.
-                    for (int i = 0; i < 5; i++)
-                    {
-                        Cabbage* c = new Cabbage(getWorld(), getX()+12, getY());
-                        getWorld()->animate(c);
-                        getWorld()->playSound(SOUND_PLAYER_SHOOT);
-                    }
+                	// Fire 1 cabbage.
+                    Cabbage* c = new Cabbage(getWorld(), getX()+12, getY());
+                    getWorld()->animate(c);
+                    getWorld()->playSound(SOUND_PLAYER_SHOOT);
+                    
+                    // Cabbage energy points minus 5.
                     m_nCabbage -= 5;
                 }
                 break;
@@ -263,11 +262,12 @@ void Projectile::doSomethingDiff()
 	// Offscreen.
     if (getX() < 0 || getX() >= VIEW_WIDTH)
         setDead();
-    else
+    else if (!dead())
     {
         checkCollision();
         if (!dead())
         {
+            std::cerr << "Cabbage did not die" << std::endl;
             moveProjectile();
             checkCollision();
         }
@@ -304,9 +304,13 @@ void Cabbage::checkCollision()
 {
 	// If it collides with anything, set it to dead.
 	// Alien ships will handle damage by themselves.
-    double damage = 0.0;
-    if (getWorld()->collide(this, damage))
+    if (getWorld()->collideWith(this) != nullptr)
+    {
+        getWorld()->collideWith(this)->sufferDamage(getDamagePoints());
         setDead();
+        std::cerr << "killed a cabbage" << std::endl;
+    }
+    
 }
 
 int Cabbage::getDamagePoints() const
@@ -333,7 +337,7 @@ void Turnip::checkCollision()
     if (collideNB())
     {
         setDead();
-        getWorld()->getPlayer()->sufferDamage(2.0);
+        getWorld()->getPlayer()->sufferDamage(getDamagePoints());
         getWorld()->playSound(SOUND_BLAST);
     }
 }
@@ -363,17 +367,17 @@ void Torpedo::moveProjectile()
 
 void Torpedo::checkCollision()
 {
-	double damage = 0.0;
 	// Enemy projectile:
 	if (collideNB())
     {
         setDead();
-        getWorld()->getPlayer()->sufferDamage(TORPEDODAMAGE);
+        getWorld()->getPlayer()->sufferDamage(getDamagePoints());
         getWorld()->playSound(SOUND_BLAST);
     }
     // Player projectile:
-    else if (getWorld()->collide(this, damage))
+    else if (getWorld()->collideWith(this) != nullptr)
     {
+        getWorld()->collideWith(this)->sufferDamage(getDamagePoints());
         setDead();
     }
     
@@ -514,7 +518,6 @@ void Alien::doSomethingDiff()
 
 void Alien::checkCollision(int damage, int score)
 {
-    double dp = 0.0;
     if (collideNB())
     {
     	// Player suffers damage.
@@ -524,19 +527,19 @@ void Alien::checkCollision(int damage, int score)
         // Possibly drop goodies.
         dropGoodie();
     }
-    else if (getWorld()->collide(this, dp))
-    {
-    	// Since we check collision twice during a tick,
-    	// each time the alien will suffer half of the damage caused by player projectiles.
-        sufferDamage(dp/2);
-        if (dead())
-        {
-            fatalCollision(score);
-            dropGoodie();
-        }
-        else
-            getWorld()->playSound(SOUND_BLAST);
-    }
+//    else if (getWorld()->collide(this, dp))
+//    {
+//        // Since we check collision twice during a tick,
+//        // each time the alien will suffer half of the damage caused by player projectiles.
+//        sufferDamage(dp/2);
+//        if (dead())
+//        {
+//            fatalCollision(score);
+//            dropGoodie();
+//        }
+//        else
+//            getWorld()->playSound(SOUND_BLAST);
+//    }
 }
 
 void Alien::fatalCollision(int score)
@@ -627,6 +630,13 @@ bool Alien::alienShip() const
 void Alien::sufferDamage(double d)
 {
     setHitpoints(getHitpoints()-d);
+    if (dead())
+    {
+        fatalCollision(getScore());
+        dropGoodie();
+    }
+    else
+        getWorld()->playSound(SOUND_BLAST);
 }
 
 double Alien::getSpeed() const
@@ -696,7 +706,7 @@ void Smallgon::dropGoodie()
 
 int Smallgon::getDamagePoints() const
 {
-    return 5;
+    return SMALLDAMAGE;
 }
 
 int Smallgon::getScore() const
@@ -757,7 +767,7 @@ void Smoregon::dropGoodie()
 
 int Smoregon::getDamagePoints() const
 {
-    return 5;
+    return SMOREDAMAGE;
 }
 
 int Smoregon::getScore() const
@@ -827,7 +837,7 @@ void Snagglegon::dropGoodie()
 
 int Snagglegon::getDamagePoints() const
 {
-    return 15;
+    return SNAGGLEDAMAGE;
 }
 
 int Snagglegon::getScore() const

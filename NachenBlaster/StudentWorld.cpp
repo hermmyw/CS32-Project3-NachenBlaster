@@ -118,11 +118,11 @@ void StudentWorld::animate(Actor* obj)
     m_actors.push_back(obj);
 }
 
-bool StudentWorld::collide(Actor* obj, double& damage)
+Actor* StudentWorld::collideWith(Actor* obj)
 {
     for (int i = 0; i < m_actors.size(); i++)
     {
-        if (obj != m_actors.at(i))
+        if (!obj->dead() && !m_actors.at(i)->dead() && obj != m_actors.at(i))
         {
             double x1 = m_actors.at(i)->getX();
             double y1 = m_actors.at(i)->getY();
@@ -132,22 +132,17 @@ bool StudentWorld::collide(Actor* obj, double& damage)
             double y2 = obj->getY();
             double r2 = obj->getRadius();
             int label2 = obj->getLabel();
-            if (label1 != NEUTRAL && label2 != NEUTRAL && label1 != label2 && dist(x1, y1, x2, y2) < 0.75 * (r1 + r2))
-            // label1 = player proj, label2 = enemy or enemy proj
-            // label1 = enemy or enemy proj, label2 = player proj
-            // let obj be enemy...and check for collision w/ player proj
+            if (label1 != label2 && dist(x1, y1, x2, y2) < 0.75 * (r1 + r2))
             {
-                // If actor[i] is a player proj, set it to dead.
-                if (m_actors.at(i)->getLabel() == PLAYER)
+                if (label1 == ENEMY)
                 {
-                    damage = m_actors.at(i)->getDamagePoints();
-                    m_actors.at(i)->setDead();
+                    std::cerr << "returned an enemy" << std::endl;
+                    return m_actors.at(i);
                 }
-                return true;
             }
         }
     }
-    return false;
+    return nullptr;
 }
 
 void StudentWorld::addDestroyed()

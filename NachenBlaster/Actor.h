@@ -26,10 +26,13 @@ const int SMORESCORE = 250;
 const int SNAGGLESCORE = 1000;
 const int GOODIESCORE = 100;
 
-const double SMALLSPEED = 2.0;
+const double SMALLSPEED = 0.5;
 const double SMORESPEED = 2.0;
 const double SNAGGLESPEED = 1.75;
 
+const int SMALLDAMAGE = 5;
+const int SMOREDAMAGE = 5;
+const int SNAGGLEDAMAGE = 15;
 // Helper function.
 double dist(double x1, double y1, double x2, double y2);
 
@@ -137,6 +140,7 @@ public:
     Cabbage(StudentWorld* sw, double startX, double startY);
     virtual void checkCollision();
     virtual int getDamagePoints() const;
+    
 private:
     virtual void moveProjectile();
 };
@@ -227,12 +231,12 @@ public:
     virtual ~Alien();
 private:
     virtual void doSomethingDiff();
-    virtual void checkCollision(int damage, int score);
+    void checkCollision(int damage, int score);
     virtual void fatalCollision(int score);
     void changeDirection();
     virtual void changeDirDiff();   // Default version of a differentiated function
     void move();
-    virtual void moveDiff();   // Default version of a differentiated function
+    virtual void moveDiff();   // Default version in base of a differentiated function move
     virtual void dropGoodie() = 0;   // For smoregon and snagglegon
     virtual void fire() = 0;
     virtual int getDamagePoints() const = 0;
@@ -275,8 +279,8 @@ class Snagglegon : public Alien
 public:
     Snagglegon(StudentWorld* sw, double startX, double startY);
 private:
-    virtual void changeDirDiff();
-    virtual void moveDiff();
+    virtual void changeDirDiff();  // Snagglegon changes direction differently
+    virtual void moveDiff();       // Snagglegon moves differently
     virtual void fire();
     virtual void dropGoodie();
     virtual int getDamagePoints() const;

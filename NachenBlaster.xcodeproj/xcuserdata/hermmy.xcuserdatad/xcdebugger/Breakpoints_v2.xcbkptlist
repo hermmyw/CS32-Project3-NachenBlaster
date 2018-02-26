@@ -10,7 +10,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "NachenBlaster/StudentWorld.cpp"
-            timestampString = "541169978.323678"
+            timestampString = "541322092.068278"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "34"
@@ -26,12 +26,28 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "NachenBlaster/Actor.cpp"
-            timestampString = "541172326.68374"
+            timestampString = "541322092.068774"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "606"
-            endingLineNumber = "606"
+            startingLineNumber = "609"
+            endingLineNumber = "609"
             landmarkName = "Alien::move()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "NachenBlaster/Actor.cpp"
+            timestampString = "541322092.069636"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "684"
+            endingLineNumber = "684"
+            landmarkName = "Smallgon::Smallgon(StudentWorld* sw, double startX, double startY)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
