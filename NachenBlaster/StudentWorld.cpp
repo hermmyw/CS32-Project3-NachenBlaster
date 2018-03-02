@@ -67,6 +67,17 @@ int StudentWorld::move()
                     return GWSTATUS_FINISHED_LEVEL;
                 }
             }
+            
+            if (m_actors.at(i)->dead())
+            {
+                Actor* temp = m_actors.at(i);
+                m_actors.erase(m_actors.begin()+i);
+                if (temp->alienShip())
+                    m_nAlien--;
+                delete temp;
+                i--;
+                std::cerr << "removed at the end of the current tick" << std::endl;
+            }
         }
         else
         // Delete dead objects.
@@ -122,7 +133,7 @@ Actor* StudentWorld::collideWith(Actor* obj)
 {
     for (int i = 0; i < m_actors.size(); i++)
     {
-        if (!obj->dead() && !m_actors.at(i)->dead() && obj != m_actors.at(i))
+        if (obj != m_actors.at(i))
         {
             double x1 = m_actors.at(i)->getX();
             double y1 = m_actors.at(i)->getY();
@@ -136,13 +147,26 @@ Actor* StudentWorld::collideWith(Actor* obj)
             {
                 if (label1 == ENEMY)
                 {
-                    std::cerr << "returned an enemy" << std::endl;
+                    std::cerr << "Obj collides with an enemy" << endl;
                     return m_actors.at(i);
                 }
             }
         }
     }
     return nullptr;
+}
+
+void StudentWorld::deleteDead(Actor* obj)
+{
+    for (vector<Actor*>::iterator p = m_actors.begin(); p != m_actors.end(); p++)
+    {
+        if (*p == obj)   // found the object in the actor collection
+        {
+            Actor* temp = *p;
+            p = m_actors.erase(p);
+            delete temp;   // delete this object
+        }
+    }
 }
 
 void StudentWorld::addDestroyed()

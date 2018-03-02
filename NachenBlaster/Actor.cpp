@@ -113,7 +113,7 @@ Actor::~Actor()
 /////////////////////////////////////////////////////////////////////////
 
 NachenBlaster::NachenBlaster(StudentWorld* sw)
-:Actor(sw, IID_NACHENBLASTER, 0, VIEW_HEIGHT/2), m_nCabbage(FULLCABBAGE), m_nTorpedo(0)
+:Actor(sw, IID_NACHENBLASTER, 0, VIEW_HEIGHT/2), m_nCabbage(FULLCABBAGE), m_nTorpedo(INITIALTORPEDO)
 {
     setHitpoints(FULLHITPOINT);
     setLabel(PLAYER);
@@ -308,9 +308,10 @@ void Cabbage::checkCollision()
     {
         getWorld()->collideWith(this)->sufferDamage(getDamagePoints());
         setDead();
-        std::cerr << "killed a cabbage" << std::endl;
+        if (dead())
+            std::cerr << "Cabbage is dead and ready to be destroyed" << std::endl;
+        // getWorld()->deleteDead(this);
     }
-    
 }
 
 int Cabbage::getDamagePoints() const
@@ -368,14 +369,15 @@ void Torpedo::moveProjectile()
 void Torpedo::checkCollision()
 {
 	// Enemy projectile:
-	if (collideNB())
+	if (getLabel() == ENEMY && collideNB())
     {
         setDead();
         getWorld()->getPlayer()->sufferDamage(getDamagePoints());
         getWorld()->playSound(SOUND_BLAST);
     }
     // Player projectile:
-    else if (getWorld()->collideWith(this) != nullptr)
+    else if (getLabel() == PLAYER &&
+             getWorld()->collideWith(this) != nullptr)
     {
         getWorld()->collideWith(this)->sufferDamage(getDamagePoints());
         setDead();
@@ -457,7 +459,7 @@ void Repair::bonus()
     double health = getWorld()->getPlayer()->getHitpoints();
     // If adding hitpoints will cause health to exceed 100%, set it to 100%.
     if (health + 10.0 > FULLHITPOINT)
-        getWorld()->getPlayer()->setHitpoints(50.0);
+        getWorld()->getPlayer()->setHitpoints(FULLHITPOINT);
     else
         getWorld()->getPlayer()->setHitpoints(getWorld()->getPlayer()->getHitpoints() + 10.0);
 }

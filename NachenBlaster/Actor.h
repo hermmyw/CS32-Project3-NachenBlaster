@@ -16,6 +16,7 @@ const int NEUTRAL = 3;
 
 const double FULLHITPOINT = 50.0;
 const int FULLCABBAGE = 30;
+const int INITIALTORPEDO = 0;
 
 const int CABBAGEDAMAGE = 2;
 const int TURNIPDAMAGE = 2;

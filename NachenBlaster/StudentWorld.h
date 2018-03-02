@@ -20,6 +20,7 @@ public:
     virtual void cleanUp();
     void animate(Actor* obj);
     void addDestroyed();
+    void deleteDead(Actor* obj);
     Actor* collideWith(Actor* obj);
     NachenBlaster* getPlayer();
     
