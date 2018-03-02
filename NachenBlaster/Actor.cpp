@@ -267,7 +267,7 @@ void Projectile::doSomethingDiff()
         checkCollision();
         if (!dead())
         {
-            std::cerr << "Cabbage did not die" << std::endl;
+            // std::cerr << "Cabbage did not die" << std::endl;
             moveProjectile();
             checkCollision();
         }
@@ -308,8 +308,7 @@ void Cabbage::checkCollision()
     {
         getWorld()->collideWith(this)->sufferDamage(getDamagePoints());
         setDead();
-        if (dead())
-            std::cerr << "Cabbage is dead and ready to be destroyed" << std::endl;
+            // std::cerr << "Cabbage is dead and ready to be destroyed" << std::endl;
         // getWorld()->deleteDead(this);
     }
 }

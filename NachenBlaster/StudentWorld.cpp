@@ -76,7 +76,7 @@ int StudentWorld::move()
                     m_nAlien--;
                 delete temp;
                 i--;
-                std::cerr << "removed at the end of the current tick" << std::endl;
+                // std::cerr << "removed at the end of the current tick" << std::endl;
             }
         }
         else
@@ -147,7 +147,7 @@ Actor* StudentWorld::collideWith(Actor* obj)
             {
                 if (label1 == ENEMY)
                 {
-                    std::cerr << "Obj collides with an enemy" << endl;
+                    // std::cerr << "Obj collides with an enemy" << endl;
                     return m_actors.at(i);
                 }
             }
@@ -156,18 +156,18 @@ Actor* StudentWorld::collideWith(Actor* obj)
     return nullptr;
 }
 
-void StudentWorld::deleteDead(Actor* obj)
-{
-    for (vector<Actor*>::iterator p = m_actors.begin(); p != m_actors.end(); p++)
-    {
-        if (*p == obj)   // found the object in the actor collection
-        {
-            Actor* temp = *p;
-            p = m_actors.erase(p);
-            delete temp;   // delete this object
-        }
-    }
-}
+//void StudentWorld::deleteDead(Actor* obj)
+//{
+//    for (vector<Actor*>::iterator p = m_actors.begin(); p != m_actors.end(); p++)
+//    {
+//        if (*p == obj)   // found the object in the actor collection
+//        {
+//            Actor* temp = *p;
+//            p = m_actors.erase(p);
+//            delete temp;   // delete this object
+//        }
+//    }
+//}
 
 void StudentWorld::addDestroyed()
 {

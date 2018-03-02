@@ -14,7 +14,7 @@ const int PLAYER = 1;
 const int ENEMY = 2;
 const int NEUTRAL = 3;
 
-const double FULLHITPOINT = 50.0;
+const double FULLHITPOINT = 5000;
 const int FULLCABBAGE = 30;
 const int INITIALTORPEDO = 0;
 
